@@ -9,7 +9,7 @@ url = "/aboutme"
 url_button = "About Me"
 # repo_version = "GitHub v0.1.0"
 # repo_license = "Open-source MIT License."
-repo_url = "https://github.com/aaranxu/adidoks"
+repo_url = "https://github.com/codeck313/codeck313"
 
 [[extra.list]]
 #TODO

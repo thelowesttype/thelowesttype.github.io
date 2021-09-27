@@ -22,6 +22,13 @@ body.dark {
     font-family: "Jost";
 }
 
+body.dark .header-bar {
+  border-top: 4px solid;
+  border-image-source: linear-gradient(90deg, $primary, #8ed6fb 50%, #d32e9d);
+  border-image-slice: 1;
+}
+
+
 body.dark a {
     color: $link-color-dark;
 }
