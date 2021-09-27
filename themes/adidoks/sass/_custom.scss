@@ -1,0 +1,30 @@
+.x {
+	position: relative;
+	width: 23px;
+	height: 23px;
+	border: 2px solid #eef5df;
+	background-color: #ff5248;
+	border-radius: 50%;
+	}
+.x::before, .x::after {
+	position: absolute;
+	top: 10px;
+	left: 5px;
+	width: 13px;
+	height: 3px;
+	content: "";
+	background-color: #eef5df;
+	display: none;
+	}
+.x::before {
+	-ms-transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
+	transform: rotate(-45deg);
+	}
+.x::after {
+	-ms-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+	transform: rotate(45deg);
+	}
+.x:hover { cursor: pointer; }
+.x:hover::before, .x:hover::after { display: block; }

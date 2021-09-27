@@ -1,0 +1,155 @@
+//
+// Base styles
+//
+
+.btn {
+  display: inline-block;
+  font-family: $btn-font-family;
+  font-weight: $btn-font-weight;
+  line-height: $btn-line-height;
+  // color: $body-color;
+  // text-align: center;
+  text-decoration: if($link-decoration == none, null, none);
+  // white-space: $btn-white-space;
+  // vertical-align: middle;
+  cursor: if($enable-button-pointers, pointer, null);
+  // user-select: none;
+  background-color: transparent;
+  // border: $btn-border-width solid transparent;
+
+  text-align: center;
+  vertical-align: middle;
+  // cursor: default;
+  // background: #bbbbbb;
+  border: 0;
+  border-width: 0;
+  -webkit-border-radius: 0;
+  border-radius: 0 !important;
+  -webkit-box-shadow: 10px 10px 0 #000000;
+  box-shadow: 10px 10px 0 #000000;
+
+
+  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-border-radius);
+  @include transition($btn-transition);
+
+  &:hover {
+    color: $body-color;
+    text-decoration: if($link-hover-decoration == underline, none, null);
+    transition: 0.5s ease-in-out;
+    filter: brightness(65%);
+  }
+
+  .btn-check:focus + &,
+  &:focus {
+    outline: 0;
+    box-shadow: $btn-focus-box-shadow;
+  }
+
+  .btn-check:checked + &,
+  .btn-check:active + &,
+  &:active,
+  &.active {
+    @include box-shadow($btn-active-box-shadow);
+
+    &:focus {
+      @include box-shadow($btn-focus-box-shadow, $btn-active-box-shadow);
+    }
+  }
+
+  &:disabled,
+  &.disabled,
+  fieldset:disabled & {
+    pointer-events: none;
+    opacity: $btn-disabled-opacity;
+    @include box-shadow(none);
+  }
+}
+
+section .btn-primary ,
+section .btn-primary:active {
+    color: #1d2d35;
+    background-color: #01d7d7;
+    border-color: #01d7d7;
+  }
+  section .btn-primary:hover
+  {
+    background-color: #01d7d7;
+    border-color: #01d7d7;
+    filter: brightness(65%);
+}
+
+.btn-sec:before {
+  content: "< ";
+}
+
+.btn-sec:after {
+  content: " >";
+}
+
+.btn-sec {
+    @include button-variant($gray-terminal, $gray-terminal);
+}
+
+.tdark{
+    -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+//
+// Alternate buttons
+//
+
+// scss-docs-start btn-variant-loops
+@each $color, $value in $theme-colors {
+  .btn-#{$color} {
+    @include button-variant($value, $value);
+  }
+}
+
+@each $color, $value in $theme-colors {
+  .btn-outline-#{$color} {
+    @include button-outline-variant($value);
+  }
+}
+// scss-docs-end btn-variant-loops
+
+
+//
+// Link buttons
+//
+
+// Make a button look and behave like a link
+.btn-link {
+  font-weight: $font-weight-normal;
+  color: $btn-link-color;
+  text-decoration: $link-decoration;
+
+  &:hover {
+    color: $btn-link-hover-color;
+    text-decoration: $link-hover-decoration;
+  }
+
+  &:focus {
+    text-decoration: $link-hover-decoration;
+  }
+
+  &:disabled,
+  &.disabled {
+    color: $btn-link-disabled-color;
+  }
+
+  // No need for an active state here
+}
+
+
+//
+// Button Sizes
+//
+
+.btn-lg {
+  @include button-size($btn-padding-y-lg, $btn-padding-x-lg, $btn-font-size-lg, $btn-border-radius-lg);
+}
+
+.btn-sm {
+  @include button-size($btn-padding-y-sm, $btn-padding-x-sm, $btn-font-size-sm, $btn-border-radius-sm);
+}

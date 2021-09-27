@@ -1,0 +1,135 @@
+.docs-links,
+.docs-toc {
+  scrollbar-width: thin;
+  scrollbar-color: $gray-terminal $gray-terminal;
+  line-height: 20px;
+}
+
+.docs-links::-webkit-scrollbar,
+.docs-toc::-webkit-scrollbar {
+  width: 5px;
+}
+
+.docs-links::-webkit-scrollbar-track,
+.docs-toc::-webkit-scrollbar-track {
+  background: $white;
+}
+
+.docs-links::-webkit-scrollbar-thumb,
+.docs-toc::-webkit-scrollbar-thumb {
+  background: $white;
+}
+
+.docs-links:hover,
+.docs-toc:hover {
+  scrollbar-width: thin;
+  scrollbar-color: $gray-terminal $gray-terminal;
+}
+
+.docs-links:hover::-webkit-scrollbar-thumb,
+.docs-toc:hover::-webkit-scrollbar-thumb {
+  background: $gray-200;
+}
+
+.docs-links::-webkit-scrollbar-thumb:hover,
+.docs-toc::-webkit-scrollbar-thumb:hover {
+  background: $gray-200;
+}
+
+.docs-links h3,
+.page-links h3 {
+  text-transform: uppercase;
+  font-size: $font-size-base;
+  margin: 1.25rem 0 0.5rem 0;
+  padding: 1.5rem 0 0 0;
+}
+.docs-links h3{
+  color: $pure-black;
+}
+@include media-breakpoint-up(lg) {
+  .docs-links h3,
+  .page-links h3 {
+    margin: 1.125rem 1.5rem 0.75rem 0;
+    padding: 1.375rem 0 0 0;
+  }
+}
+
+.docs-links h3:not(:first-child) {
+  border-top: 1px solid $gray-200;
+}
+
+a.docs-link {
+  color: $pure-black;
+  display: block;
+  padding: 0.125rem 0;
+  font-size: $font-size-base;
+}
+
+.page-links li {
+  margin-top: 0.375rem;
+  padding-top: 0.375rem;
+}
+
+.page-links li ul li {
+  border-top: none;
+  padding-left: 1rem;
+  margin-top: 0.125rem;
+  padding-top: 0.125rem;
+}
+
+.page-links li:not(:first-child) {
+  border-top: 1px dashed $gray-200;
+}
+
+.page-links a {
+  // color: $body-color;
+  color: #000000;
+  display: block;
+  padding: 0.125rem 0;
+  font-size: $font-size-base * 0.9375;
+}
+
+.docs-link:hover,
+.docs-link.active{
+  color: #bbbbbb;
+  text-decoration: none;
+  background-color: #000000;
+}
+
+.page-links{
+  color: #00aaaa;
+  background-color: #00aaaa;
+  content: none;
+  padding: 0px 15px;
+  margin: 25px 5px;
+  margin-left: -5px;
+  border: 2px solid #000000;
+  -webkit-box-shadow: 0 0 0 5px, 11px 13px 0 4px black;
+          box-shadow: 0 0 0 5px, 11px 13px 0 4px black;
+}
+
+.page-links h3{
+  color: white;
+}
+
+.page-links a:hover {
+  text-decoration: none;
+  color: $link-color;
+}
+
+.docs-links h3.sidebar-link,
+.page-links h3.sidebar-link {
+  text-transform: none;
+  font-size: $font-size-md;
+  font-weight: normal;
+}
+
+.docs-links h3.sidebar-link a,
+.page-links h3.sidebar-link a {
+  color: $body-color;
+}
+
+.docs-links h3.sidebar-link a:hover,
+.page-links h3.sidebar-link a:hover {
+  text-decoration: underline;
+}
