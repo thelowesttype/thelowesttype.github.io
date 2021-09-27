@@ -14,7 +14,7 @@ repo_url = "https://github.com/aaranxu/adidoks"
 [[extra.list]]
 #TODO
 title = 'Projects <img src="https://emojis.slackmojis.com/emojis/images/1605722420/11386/among_us_orange_dance.gif?1605722420" width="40"/> '
-content = 'From your Analog Synth to Animatronic Chatbot. There should be something to attract each one of you <p> <a class="btn btn-primary btn-lg px-4 mb-2" href="projects/" role="button">Check out!</a>'
+content = 'From your Analog Synth to Animatronic Chatbot. There should be something to attract each one of you <p> <a class="btn btn-primary btn-lg px-4 mb-2" href="projects/gimagegrabber/intro/" role="button">Check out!</a>'
 
 [[extra.list]]
 title = 'BTS? <img src="https://emojis.slackmojis.com/emojis/images/1562883039/5948/bongo_blob.gif?1562883039" width="40"/> '
