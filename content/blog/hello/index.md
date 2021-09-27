@@ -49,8 +49,10 @@ To just show off the ability of site let's try few things shall we?<br>
     $$
     \varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } }
     $$
-4. Images?
-    {{ resize_image(path="/blog/hello/me2.png",width=300 , op="fit_width") }}
+4. Images?<br>
+    <div style="text-align: center;">
+    <img src="/blog/hello/me2.png" style="width: 75%"></img>
+    </div>
 
 <span style="color:green">$</span> end<br><br>
 Press <kbd>ALT</kbd>+<kbd>F4</kbd> to end the session.
