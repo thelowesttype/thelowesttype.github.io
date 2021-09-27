@@ -54,5 +54,5 @@ To just show off the ability of site let's try few things shall we?<br>
     <img src="/blog/hello/me2.png" style="width: 75%"></img>
     </div>
 
-<span style="color:green">$</span> end<br><br>
-Press <kbd>ALT</kbd>+<kbd>F4</kbd> to end the session.
+Oh don't forget to press the terminal button on the top for some **nice** suprise. <br> <br>
+<span style="color:green">$</span> press <kbd>ALT</kbd>+<kbd>F4</kbd> to end the session.
