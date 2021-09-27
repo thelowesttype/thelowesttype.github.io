@@ -16,17 +16,15 @@
 
 {% if caption %}
 <figure>
-  <div style="text-align: center;">
-    <a href="{{ get_url(path=path) }}" target="_blank">
-      <img src="{{ image.url }}" />
-    </a>
-    <figcaption><br>{{ caption }}</figcaption>
-  </div>
+  <a href="{{ get_url(path=path) }}" target="_blank">
+    <img src="{{ image.url }}" />
+  </a>
+  <figcaption><br>{{ caption }}</figcaption>
 </figure>
 {% elif figure %}
 <figure>
-  <img src="{{ image.url }}" />
+  <img src="{{ image.url }}"/>
 </figure>
 {% else %}
-<img src="{{ image.url }}" />
+<img src="{{ image.url }}"/>
 {% endif %}
