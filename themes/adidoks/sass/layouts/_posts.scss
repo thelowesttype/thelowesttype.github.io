@@ -1,6 +1,6 @@
 .home .card,
 .contributors.list .card,
-.blog.list .card , .project-link{
+.blog.list .card , .project-link, .project-section{
   margin-top: 2rem;
   margin-bottom: 2rem;
   transition: transform 0.3s;
@@ -9,13 +9,13 @@
 .home .card:hover,
 .contributors.list .card:hover,
 .blog.list .card:hover,
-.projects.single .card:hover, .project-link:hover {
+.projects.single .card:hover, .project-link:hover, .project-section:hover {
   transform: scale(1.025);
 }
 
 .home .card-body,
 .contributors.list .card-body,
-.blog.list .card-body {
+.blog.list .card-body, .project-section .card-body {
   padding: 0 2rem 1rem;
 }
 

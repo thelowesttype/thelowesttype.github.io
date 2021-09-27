@@ -63,6 +63,7 @@ a.docs-link {
   display: block;
   padding: 0.125rem 0;
   font-size: $font-size-base;
+  line-height: 25px;
 }
 
 .page-links li {
@@ -122,6 +123,10 @@ a.docs-link {
   text-transform: none;
   font-size: $font-size-md;
   font-weight: normal;
+}
+
+.docs-links h3{
+  color: #FF00FF;
 }
 
 .docs-links h3.sidebar-link a,

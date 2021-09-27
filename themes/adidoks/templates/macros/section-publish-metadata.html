@@ -1,0 +1,7 @@
+{% macro section_publish_metadata(subsection) %}
+<p><small>
+        <strong>
+        {% if subsection.extra.total_time %}{{ subsection.extra.total_time }}&nbsp;min read{% endif %}
+        </strong></small>
+    <p>
+{% endmacro %}

@@ -108,7 +108,7 @@ site_links_search_box = false
 [[extra.menu.main]]
 name = "Projects"
 section = "projects"
-url = "/projects/getting-started/introduction/"
+url = "/projects/"
 weight = 10
 
 [[extra.menu.main]]

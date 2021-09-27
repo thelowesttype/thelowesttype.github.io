@@ -1,0 +1,32 @@
+{% if not width %}
+  {% set width = 240 %}
+{% endif %}
+{% if not height %}
+  {% if width %}
+    {% set height = width %}
+  {% else %}
+    {% set height = 180 %}
+  {% endif %}
+{% endif %}
+{% if not op %}
+  {% set op = 'fill' %}
+{% endif %}
+
+{% set image = resize_image(path=path, width=width, height=height) %}
+
+{% if caption %}
+<figure>
+  <div style="text-align: center;">
+    <a href="{{ get_url(path=path) }}" target="_blank">
+      <img src="{{ image.url }}" />
+    </a>
+    <figcaption><br>{{ caption }}</figcaption>
+  </div>
+</figure>
+{% elif figure %}
+<figure>
+  <img src="{{ image.url }}" />
+</figure>
+{% else %}
+<img src="{{ image.url }}" />
+{% endif %}

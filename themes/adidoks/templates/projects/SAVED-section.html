@@ -31,24 +31,14 @@
             {% for s in index.subsections %}
               {% set subsection = get_section(path=s) %}
               {% if subsection.pages %}
-            <div class="card project-section" style="border: 1px solid #e9ecef; border-radius: .6rem;">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md my-auto mx-auto">
-                    <h2 class="h3"><a class="stretched-link text-body" href="{{ subsection.permalink }}">{{ subsection.title }}</a></a></h2>
-                  {% if subsection.extra.lead %}
-                    <p class="lead" style="line-height: 26px;">{{ subsection.extra.lead | safe }}</p>{% elif subsection.description %}<p class="lead">{{ subsection.description | safe }}</p>{% endif %}
-                  {% endif %}
-                  {{ macros_section_publish::section_publish_metadata(subsection=subsection) }}
+                {% for page in subsection.pages %}
+                <div class="card project-link">
+                  <div class="card-body ">
+                    <a class="stretched-link ms-auto-l text-body" href="{{ page.permalink }}" style="padding-top: 10px;">{{ page.title }} &rarr;</a>
                   </div>
-                  {% if subsection.extra.image %}
-                    <div class="col-md my-auto mx-auto" style="padding-top: 15px;">
-                      <img src="{{ subsection.extra.image }}" class="img-fluid">
-                    </div>
-                  {% endif %}
-              </div>
-              </div>
-            </div>
+                </div>
+                {% endfor %}
+              {% endif %}
             {% endfor %}
           </div>
         </article>

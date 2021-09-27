@@ -13,7 +13,7 @@ document.getElementById('mode').addEventListener('click', () => {
 
 });
 
-if (localStorage.getItem('theme') !== 'light') {
+if (localStorage.getItem('theme') === 'dark') {
 
   document.body.classList.add('dark');
 
@@ -21,8 +21,3 @@ if (localStorage.getItem('theme') !== 'light') {
 else {
   document.body.classList.add('light');
 }
-
-
-$(window).load(function () {
-  $("body").removeClass("preload");
-});
