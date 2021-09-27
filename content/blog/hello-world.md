@@ -1,8 +1,8 @@
 +++
-title = "Hello World"
-description = "Introducing Doks, a Hugo theme helping you build modern documentation websites that are secure, fast, and SEO-ready — by default."
-date = 2021-05-01T09:19:42+00:00
-updated = 2021-05-01T09:19:42+00:00
+title = "hello homo.sapien"
+description = "Here is to new things!"
+date = 	2021-09-27T11:51:33+0000
+updated = 2021-09-27T11:51:33+0000
 draft = false
 template = "blog/page.html"
 
@@ -10,7 +10,7 @@ template = "blog/page.html"
 authors = ["Rustaceans"]
 
 [extra]
-lead = "This is the source code of the traditional <b>Hello World</b> program."
+lead = "Here is to new things!"
 +++
 
 ```rust

@@ -1,4 +1,11 @@
 // Set darkmode
+if (localStorage.getItem('theme') === null) {
+
+  document.body.classList.add('dark');
+  localStorage.setItem('theme', 'dark');
+
+}
+
 document.getElementById('mode').addEventListener('click', () => {
 
   document.body.classList.toggle('dark');
@@ -6,10 +13,13 @@ document.getElementById('mode').addEventListener('click', () => {
 
 });
 
-if (localStorage.getItem('theme') === 'dark') {
+if (localStorage.getItem('theme') !== 'light') {
 
   document.body.classList.add('dark');
 
+}
+else {
+  document.body.classList.add('light');
 }
 
 
