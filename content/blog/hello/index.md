@@ -18,7 +18,7 @@ math = true
 *‒ Isaac Asimov, 'I, Robot'.*
 
 Not trying to scare poeple with the thought of us seeing robots taking over ~~cause they already have~~. If you ask me robots are nothing but an evolved homosapien. That being said now that this website is ready *phew*.
-<br> Let the fun beg.in. My plan is to use this to write documentation and if time permits a step-by-step guide. I want to write around 2 articles + projects doc and upload it here. Will use blog area to talk about things which aren't technical or I just want to talk about some random thing.
+<br> Let the fun beg.in. My plan is to use this to write documentation and if time permits a step-by-step guide. I want to write around 2 articles + projects doc every month. Will use blog area to talk about things which aren't technical or I just want to talk about some random thing.
 <br><br>
 To just show off the ability of site let's try few things shall we?<br>
 1. This is how code will render as
@@ -45,7 +45,6 @@ To just show off the ability of site let's try few things shall we?<br>
     - ##### H5
     - ###### H6
 3. Let's see some Katex while we are at it
-    Block math:
     $$
     \varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } }
     $$

@@ -28,3 +28,32 @@
 	}
 .x:hover { cursor: pointer; }
 .x:hover::before, .x:hover::after { display: block; }
+figcaption {
+	background-color: #222;
+    color: #fff;
+    font: italic smaller sans-serif;
+    padding: 3px;
+    text-align: center;
+}
+figure {
+    border: thin #c0c0c0 solid;
+    display: flex;
+    flex-flow: column;
+    padding: 5px;
+    max-width: 400px;
+    margin: auto;
+}
+
+    /* Without Container */
+    .zoom-without-container {
+      transition: transform .2s; /* Animation */
+      margin: 0 auto;
+    }
+    .zoom-without-container img{
+    	width:100%;
+    	height:auto;
+    }
+    .zoom-without-container:hover {
+      transform: scale(1.5);
+      /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+    }
