@@ -1,6 +1,6 @@
 +++
 title = "About me!"
-description = '<img class="rounded-img" src="/aboutme/3.jpeg" width=70%> <br><br>I am <b>Saksham</b>, from <img src="https://cdn-icons-png.flaticon.com/512/299/299702.png" style="padding-bottom: 5px;" width="20"> <br> Currently an undergraduate student at R.V. College of Engineering <br> in Electronics and Communication (grad. 2023).'
+description = '<img class="rounded-img" src="/aboutme/3.jpeg" width=45%> <br><br>I am <b>Saksham</b>, from <img src="https://cdn-icons-png.flaticon.com/512/299/299702.png" style="padding-bottom: 5px;" width="20"> <br> Currently an undergraduate student at R.V. College of Engineering <br> in Electronics and Communication (grad. 2023).'
 date = 2021-09-26T11:30:24.000Z
 updated = 2021-09-26T11:30:24.000Z
 draft = false

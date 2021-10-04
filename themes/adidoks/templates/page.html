@@ -13,7 +13,7 @@
   {% else %}
     {% set title = config.title %}
   {% endif %}
-  
+
   {% if page.description %}
     {% set description = page.description %}
   {% else %}
@@ -26,10 +26,10 @@
   {% else %}
     {% set page_section = "" %}
   {% endif %}
-  
+
   {{ macros_head::seo(title=title, title_addition=title_addition, description=description, type="article", is_page=true, created_time=created_time, updated_time=updated_time, page_section=page_section) }}
 {% endblock seo %}
-  
+
 {% block body %}
   {% if section.extra.class %}
     {% set page_class = page.extra.class %}
@@ -42,7 +42,7 @@
 <div class="wrap container" role="document">
   <div class="content">
     <div class="row justify-content-center">
-      <div class="col-md-12 col-lg-10 col-xl-8">
+      <div class="col-md-12 col-lg-10 col-xl-10">
         <article>
           <div class="page-header">
             <h1>{{ page.title }}</h1>

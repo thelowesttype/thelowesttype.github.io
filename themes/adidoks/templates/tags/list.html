@@ -17,13 +17,13 @@
   {% else %}
     {% set title = config.title %}
   {% endif %}
-  
+
   {% if page.description %}
     {% set description = section.description %}
   {% else %}
     {% set description = config.description %}
   {% endif %}
-  
+
   {{ macros_head::seo(title=title, title_addition=title_addition, description=description) }}
 {% endblock seo %}
 
@@ -39,7 +39,7 @@
 <div class="wrap container" role="document">
   <div class="content">
     <div class="row justify-content-center">
-      <div class="col-md-12 col-lg-10 col-xl-8">
+      <div class="col-md-12 col-lg-10 col-xl-10">
         <article>
           <h1 class="text-center">{{ section.title }}</h1>
           <div class="text-center">{{ section.content | safe }}</div>

@@ -57,3 +57,20 @@ figure {
 	transform: scale(1.5);
 	/* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
 }
+
+@media only screen and (max-width: 600px) {
+  .katex-display > .katex {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
+// .katex > .katex-html {
+// 	white-space: normal;
+// }
+
+// .katex .base {
+// 	margin-top: 2px;
+// 	margin-bottom: 2px;
+// }

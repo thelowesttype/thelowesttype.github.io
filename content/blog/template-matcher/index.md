@@ -28,7 +28,7 @@ It picks up the features on the object which are too reliant on having that *exa
 Hence we end up with FFT based template matching technique. For this, I used these papers as my basis [1], [2].<br>
 The architecture discussed in the papers had a higher runtime so it had to be optimized. Hence I took only the bare bones of the architecture explained in the paper and applying filters and calculations which were less intensive. Allowing the algorithm to reach the set parameter.<br><br>
     <div style="text-align: center;">
-    <img src="/blog/template-matcher/meme1.png" style="width: 75%"></img>
+    <img src="/blog/template-matcher/meme1.png" style="width: 40%"></img>
     </div>
 
 ## Let's look at the technique
@@ -56,14 +56,14 @@ Hence we can get the change in location as a power of <kbd>e</kbd>. But consider
 Considering just rotation and translation for now,
 
 $$
-f_2 \lparen x,y \rparen = f_1\lparen x \cos{\theta_0} + y \sin{\theta_0} -x_0, \newline -x \sin{\theta_0} + y \cos{\theta_0} -y_0 \rparen \newline
-F_2\lparen x,y \rparen = e^{-j2\pi(\xi x_0+\eta y_0)}F_1 \lparen \xi \cos{\theta_0} \newline + \eta \sin{\theta_0},  -\xi\sin{\theta_0} + \eta \cos{\theta_0}\rparen
+f_2 \lparen x,y \rparen = f_1\lparen x \cos{\theta_0} + y \sin{\theta_0} -x_0, -x \sin{\theta_0} + y \cos{\theta_0} -y_0 \rparen \newline
+F_2\lparen x,y \rparen = e^{-j2\pi(\xi x_0+\eta y_0)}F_1 \lparen \xi \cos{\theta_0} + \eta \sin{\theta_0},  -\xi\sin{\theta_0} + \eta \cos{\theta_0}\rparen
 $$
 
 Taking Magnitude both sides,<br>
 
 $$
-M_2(x\xi,\eta) = M_1(\xi \cos{\theta_0} + \eta \sin{\theta_0}, \newline -\xi\sin{\theta_0} + \eta \cos{\theta_0})
+M_2(x\xi,\eta) = M_1(\xi \cos{\theta_0} + \eta \sin{\theta_0}, -\xi\sin{\theta_0} + \eta \cos{\theta_0})
 $$
 
 Hence we can write it as,<br>
@@ -181,7 +181,7 @@ As mentioned in the Algorithm section instead of just Polar-Transformation we ac
 #### Cross-Power Spectrum of the Images
 You can notice a small dot almost in the middle of the image. That dot is a unit function denoting the angle and scale with which the live image has changed compared to the template.
 <div style="text-align: center;">
-    <figure style="max-width: 800px;">
+    <figure style="max-width: 650px;">
         <img class="zoom-without-container" src="/blog/template-matcher/algo7.png" style="width: 100%"></img>
         <figcaption>Cross Power Spectrum</figcaption>
     </figure>
