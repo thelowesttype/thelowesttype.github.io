@@ -45,7 +45,7 @@ One of the first big projects I created, water level indicator back in 6<sup>th<
 </p>
 
 ### GitHub Contribution
-<a href="https://github.com/codeck313" target="_blank"><img src="http://ghchart.rshah.org/codeck313" alt="codeck313's Github chart"/></a>
+<a href="https://github.com/codeck313" target="_blank"><img src="http://ghchart.rshah.org/codeck313" alt="codeck313's Github chart" style="width: 100%;"/></a>
 
 
 
