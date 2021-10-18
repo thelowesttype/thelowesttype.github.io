@@ -10,12 +10,12 @@ template = "blog/page.html"
 authors = ["Saksham"]
 
 [extra]
-lead = 'This is an innovative version of an angle, scale and position invariant Template matching algorithm'
+lead = 'This is an innovative version of an angle, scale and position invariant template matching algorithm.'
 math = true
 +++
 
 The goal was to create a template matching algorithm that can run in sub-200ms and is position, scale, and rotation invariant. The built-in template matching function of OpenCV is robust but only if you have positional invariance requirement. It fails if the object in the live footage rotates with respect to the master image.<br>
-Another algorithm explored was *feature-matching*, this ticked all the boxes it is positional, rotational, and scale-invariant, but the trouble here was that it depends heavily on the individual blobs of the master image.<br>
+Another algorithm explored was *feature-matching*. This ticked all the boxes. It is positional, rotational, and scale-invariant. But the challenge here was that it depends heavily on the individual blobs of the master image.<br>
 As you can see in the following image:<br>
     <div style="text-align: center;">
         <figure>
@@ -24,15 +24,15 @@ As you can see in the following image:<br>
         </figure>
     </div>
 <br>
-It picks up the features on the object which are too reliant on having that *exact* object shown to the system again. This is certainly improbable, and just having an extra scratch on the object will make the system reject it. Hence this may work in simulations but for real-life dataset, this cant be used.<br>
-Hence we end up with FFT based template matching technique. For this, I used these papers as my basis [1], [2].<br>
-The architecture discussed in the papers had a higher runtime so it had to be optimized. Hence I took only the bare bones of the architecture explained in the paper and applying filters and calculations which were less intensive. Allowing the algorithm to reach the set parameter.<br><br>
+It picks up the features on the object which are too reliant on having that *exact* object shown to the system again. This is certainly improbable, and just having an extra scratch on the object will make the system reject it. Hence this may work in simulations but for real-life dataset, this can't be used.<br>
+Hence, I end up with FFT based template matching technique. For this, I used these papers as my basis [1], [2].<br>
+The architecture discussed in the papers had a higher runtime so it had to be optimized. I took only the bare bones of the architecture explained in the paper and applying filters and calculations which were less intensive. Allowing the algorithm to reach the set parameter.<br><br>
     <div style="text-align: center;">
     <img src="/blog/template-matcher/meme1.png" style="width: 40%"></img>
     </div>
 
-## Let's look at the technique
-The main tool leveraged in this method is FFT's time shift property,<br>
+## Let's look at the technique:
+The main tool leveraged in this method is FFT's time shift property -<br>
 
 $$
 f_2 \lparen t \rparen = f_1 \lparen t-t_0 \rparen
@@ -51,7 +51,7 @@ $$
 \frac{F_1(\xi,\eta)F_2^*(\xi,\eta)}{|F_1(\xi,\eta)F_2(\xi,\eta)|} = e^{j2\pi(\xi x_0+\eta y_0)}
 $$
 <br>
-Hence we can get the change in location as a power of <kbd>e</kbd>. But considering our target is to first find the angle we need to convert the image from Cartesian plane to Polar plane. But even that won't be enough as the change in angle will be coming as a power of <kbd>e</kbd>. Thus, we need to take *log-polar transform* of the image. One more thing to note is that even though we want just the rotation to be detected. But as we are going to apply this algorithm in real life it can be a possibility that the scale of the image also changes due to distortion of lens and a number of other factors. Hence we technically need to see the scale and rotation of the image.
+Hence we can get the change in location as a power of <kbd>e</kbd>. But considering our target is to first find the angle, we need to convert the image from Cartesian plane to Polar plane. But even that won't be enough as the change in angle will be coming as a power of <kbd>e</kbd>. Thus, we need to take *log-polar transform* of the image. One more point to note is that even though we want just the rotation to be detected. But as we are going to apply this algorithm in real life it is possibile that the scale of the image also changes. This is due to distortion of lens and a number of other factors. Hence, we technically need to see the scale and rotation of the image.
 <br>
 Considering just rotation and translation for now,
 
@@ -100,7 +100,7 @@ $$
 M_1(\xi,\theta) = M_2(\xi - d,\theta-\theta_0)
 $$
 
-Now, we can get both angle and scale by which the live image correlates to the master image. Now working off the angle value we rotate our template image and then use the OpenCV built-in template matching function working off coefficient score. This will provide us with the location of the object and now the data is then sent to the Camera Setup.
+Now, we can get both angle and scale by which the live image correlates to the master image. Now working off the angle value we rotate our template image and then use the OpenCV built-in template matching function working off coefficient score. This will provide us with the location of the object and then the data is sent to the Camera Setup.
 <br>
 <div style="text-align: center;">
     <figure>
@@ -111,7 +111,7 @@ Now, we can get both angle and scale by which the live image correlates to the m
 <br>
 
 ## Algorithm
-Here I am just giving you a brief of the whole algorithm and major steps involved in it, readers are encouraged to read more about it by themselves through research papers.<br>
+Here, I am just giving you a brief of the whole algorithm and major steps involved in it. Readers are encouraged to read more about it by themselves through research papers.<br>
 <div style="text-align: center;">
     <figure>
         <img class="zoom-without-container" src="/blog/template-matcher/flow.png" style="width: 100%"></img>
@@ -139,7 +139,6 @@ The algorithm is basically to smooth out the border of the image to get rid of t
 </div>
 
 #### DFT of the Image
-DFT of the image in the Cartesian plane will look like,
 
 <div style="text-align: center;">
     <figure style="max-width: 800px;">
@@ -179,7 +178,7 @@ As mentioned in the Algorithm section instead of just Polar-Transformation we ac
 
 
 #### Cross-Power Spectrum of the Images
-You can notice a small dot almost in the middle of the image. That dot is a unit function denoting the angle and scale with which the live image has changed compared to the template.
+You can notice a small dot almost in the centre of the image. That dot is a unit function denoting the angle and scale with which the live image has changed as compared to the template.
 <div style="text-align: center;">
     <figure style="max-width: 650px;">
         <img class="zoom-without-container" src="/blog/template-matcher/algo7.png" style="width: 100%"></img>
@@ -190,7 +189,7 @@ You can notice a small dot almost in the middle of the image. That dot is a unit
 <br>
 
 ## Conclusion
-This is part of a bigger project I worked on. Will be posting the code and how to test it on your system after I talk about other, parts of this project so stay tuned over the blog section. Once everything is explained here I will post the guide over on the projects section of the website. *Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use [Livemark](https://addons.mozilla.org/en-US/firefox/addon/livemarks/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) for this.*
+This is part of a bigger project I worked on. After I talk about other parts of this project, I will post the codes and explain you how to test it on your system. So stay tuned over the blog section. Once everything is explained here I will post the guide on the projects section of the website. *Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use [Livemark](https://addons.mozilla.org/en-US/firefox/addon/livemarks/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) for this.*
 
 <span style="color:green">$</span> press <kbd>CTRL</kbd>+<kbd>W</kbd> to end the session.
 
