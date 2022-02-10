@@ -154,6 +154,14 @@ orders of the agents to minimize this issue to the least this thus defines, anot
 
 ## Up Next
 In future I want to talk about how the algorithum is exactly working and try to quantize the results with different style and sized arena. Once the project is done will put all the documentation in the project section of the website.
+<br>
+    <div style="text-align: center;">
+        <figure>
+            <img src="/blog/multi-robo/teaser.png" style="width: 100%"></img>
+            <figcaption>Teaser Image</figcaption>
+        </figure>
+    </div>
+<br>
 <p>
 
 *Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use [Livemark](https://addons.mozilla.org/en-US/firefox/addon/livemarks/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) for this.*
