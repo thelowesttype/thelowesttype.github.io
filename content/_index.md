@@ -17,7 +17,7 @@ title = 'Projects <img src="https://emojis.slackmojis.com/emojis/images/16057224
 content = 'From your Analog Synth to Animatronic Chatbot. There should be something to attract each one of you <p> <a class="btn btn-primary btn-lg px-4 mb-2" href="projects/gimagegrabber/intro/" role="button">Check out!</a>'
 
 [[extra.list]]
-title = 'BTS? <img src="https://emojis.slackmojis.com/emojis/images/1562883039/5948/bongo_blob.gif?1562883039" width="40"/> '
+title = '<strike>Blog</strike> BTS <img src="https://emojis.slackmojis.com/emojis/images/1562883039/5948/bongo_blob.gif?1562883039" width="40"/> '
 content = 'Join in with me and my voyage of making/fixing/<strike>breaking</strike> things and some random animation projects I do. <p> <a class="btn btn-primary btn-lg px-4 mb-2" href="blog" role="button">Dekhlo</a>'
 
 [[extra.list]]
