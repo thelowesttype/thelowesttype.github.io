@@ -22,7 +22,7 @@ Let's start with why the hell I need to do all this?
 *- Arthur C. Clarke*
 
 ## Why?
-So this was a brainchild of the [Flipkart grid Challenge](https://www.youtube.com/watch?v=p8RlPfKk0EE&feature=youtu.be) competition, where we were supposed to deliver packages to multiple stations. We could use any number of robots we want and hence this raised the need to be able to plan in multiagent fashion.
+So this was a brainchild of the trying to replicate delivery of packages to multiple places using any number of robots. Hence this raised the need to be able to plan in multiagent fashion.
 <br>
 
 ## What was I trying to achieve?
@@ -41,7 +41,7 @@ For this reason I wished to go with the decoupled approach. It’s way less taxi
 <br>
 
 ## Defining the Problem Statement
-The following was how the arena given to us looked like. The black regions are obstacles and the small notches made at (1,5) and (1,10) are the starting positions. The white area is where the robots can move around. The goals (9 in total) are given in the middle of map as a group of 4 black boxes.
+The following was how the arena on which testing was done looked like. The black regions are obstacles and the small notches made at (1,5) and (1,10) are the starting positions. The white area is where the robots can move around. The goals (9 in total) are given in the middle of map as a group of 4 black boxes.
 <br>
 <div style="text-align: center;">
     <figure>
