@@ -10,7 +10,7 @@ template = "blog/page.html"
 authors = ["Saksham"]
 
 [extra]
-lead = 'Indulging in the beautifull field called multiple robot path planning with algorithum which I like to call Private Obstacle Path Planning'
+lead = 'Indulging in the beautiful field called multi-robot path planning using Private Obstacle Path Planning algorithm'
 math = true
 +++
 
