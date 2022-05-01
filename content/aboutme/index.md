@@ -21,9 +21,8 @@ One of the first big projects I created, water level indicator back in 6<sup>th<
 
 ### <img src="https://emojis.slackmojis.com/emojis/images/1617817329/28102/music_robot.gif?1617817329" style="padding-bottom: 19px;" width="40"/> Projects I am working on :
 - Quadruped Robot
-- Analog music synths
-- Animal pose detector
-- User Haptics
+- Multi Robot Navigation
+- DSP analysis on AVR family chips
 <br><br>
 <h3>Platforms I have worked with</h3>
 <p>
