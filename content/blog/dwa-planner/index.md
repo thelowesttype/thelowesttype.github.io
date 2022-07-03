@@ -31,7 +31,7 @@ Motion planning is a term used in robotics for the process of breaking down the 
 </div>
 
 ## What are the usual approaches for it?
-Collision avoidance algorithm is mainly of 2 types: <i>global and local</i>. Some of the global techniques are graph-based, potential field methods and cell decomposition. You can check out the article I wrote about a <i>graph-based approach for a multirobot system <a href="https://thelowesttype.github.io/blog/multi-robo/" target="_blank">here</a></i>. Global approaches require a complete model of the robot and environment to plan the path. This makes them a bit slow to avoid fast moving obstacles and if the environment model is not completely accurate.
+Collision avoidance algorithm is mainly of 2 types: <i>global and local</i>. Some of the global techniques are graph-based, potential field methods and cell decomposition. You can check out the article I wrote about a <i>graph-based approach for a multirobot system <a href="https://thelowesttype.github.io/blog/multi-robo/" target="_blank">here</a></i>. Global approaches require a complete model of the robot and environment to plan the path. This makes them a bit slow to avoid fast moving obstacles and also if the environment model is not completely accurate.
 <br>
 Whereas local planner considers only a small part of the entire model to make the decisions. But they usually provide a solution that is less optimal and it is more prone to being stuck in local-minima. But they can make a decision at a faster pace and are able to make decisions in a partially available world model. Vector field histogram is a type of local planner approach which uses an occupancy grid to form a model of the nearby environment using sensors. Utilizing the occupancy grid and <i>Artificial Potential Field (APF)</i> it plans the path for the robot.
 <br>
@@ -66,7 +66,7 @@ With the introduction out the way let's get to how DWA works!
 <hr>
 
 ## Equations defining robot drive
-To be able to provide with motion plan within the limitation of the robot we need to model the robot's drive (How does the robot move). To simplify things will consider it to be a mobile robot with a <a href="https://en.wikipedia.org/wiki/Differential_wheeled_robot" target="_blank">differential drive</a>
+To be able to provide with motion plan within the limitation of the robot we need to model the robot's drive (How does the robot move). To simplify things we'll consider it to be a mobile robot with a <a href="https://en.wikipedia.org/wiki/Differential_wheeled_robot" target="_blank">differential drive</a>
 <br>
 <br>
 <div style="display: block; margin-left: auto; margin-right: auto; width: 60%; ">
@@ -180,7 +180,7 @@ Amongst a set of given trajectory the one with highest <kbd>G(v,&#969;)</kbd> is
 <br>
 
 ##### Target Heading
-<kbd>heading(x,&#969;)</kbd> function evaluates the alignment of the robot to the target heading. It is given by 180-&#952;, where &#952; is the delta between the heading of the robot after it undertakes a given trajectory and the angle, the goal point makes from the current position of the robot.
+<kbd>heading(x,&#969;)</kbd> function evaluates the alignment of the robot to the target heading. It is given by 180-&#952;, where &#952; is the delta between the heading of the robot after it undertakes a given trajectory and the angle goal point makes from the current position of the robot.
 <br>
 <div style="display: block; margin-left: auto; margin-right: auto; width: 40%; ">
     <figure>
