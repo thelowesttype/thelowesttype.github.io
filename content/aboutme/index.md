@@ -10,19 +10,19 @@ template = "about/page.html"
 [extra]
 heading = '<span style="color: #41FF00">$</span> hello homo.sapien'
 +++
-My academic interests are in **computer vision, robotics, machine learning, and core electronics.** Check out my <a href="/aboutme/Saksham_Sharma_CV.pdf" target="_blank">resume</a>
-
+My academic interests are in **Robotics, Controls, Computer Vision and Machine Learning.** 
 
 *My story you ask?*
 <br>
-Since early days of my schooling I was really into ~~breaking~~ making things.<br>
-One of the first big projects I created, water level indicator back in 6<sup>th</sup> grade started my roller coaster journey by introducing me to a transistor and by and large to the whole domain of electronics. And then I quickly realized, this is what I want to keep on doing in my life.
-<br> <br> In my free time, I also dabble into swimming, cycling, doing animation and <a href="https://www.youtube.com/channel/UC7BLVR5OvHzaD7utOEuk94g" target="_blank">SFX projects</a>. I also love percussion instruments like tabla, drums.
+Since early days of my schooling I have been ~~breaking~~ making things.<br>
+Creating water level indicator back in 6<sup>th</sup> grade started my roller coaster journey in field of electronics by introducing me to a transistor and by and large to this beatiful domain where ~~mostly~~ everyting is possible. And then I quickly realized, this is what I want to keep on doing in my life.
+<br> <br> In my free time, I also dabble with swimming, long cycling journeys, little bit of design, animation and <a href="https://www.youtube.com/channel/UC7BLVR5OvHzaD7utOEuk94g" target="_blank">SFX projects</a>. I also love percussion instruments like tabla, drums.
 
 ### <img src="https://emojis.slackmojis.com/emojis/images/1617817329/28102/music_robot.gif?1617817329" style="padding-bottom: 19px;" width="40"/> Projects I am working on :
+- Autonomous Car @ Wirin Labs
 - Quadruped Robot
 - Multi Robot Navigation
-- DSP analysis on AVR family chips
+- Digital Synth
 <br><br>
 <h3>Platforms I have worked with</h3>
 <p>
