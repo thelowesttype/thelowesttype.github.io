@@ -22,7 +22,7 @@ Here is a scene rendered by the engine
 <br>
 <div style="display: block; margin-left: auto; margin-right: auto; width: 100%; ">
     <figure>
-        <img src="/blog/ray-tracing/coverPic.png" class="center"></img>
+        <img src="/blog/ray-tracing/img_26min.png" class="center"></img>
         <figcaption>splashOfLife</figcaption>
     </figure>
 </div>
@@ -109,8 +109,28 @@ Things it can do as of now :
 </div>
 <br>
 
+8. Reflective Materials
+
+<br>
+<div style="display: block; margin-left: auto; margin-right: auto; width: 100%; ">
+    <figure>
+        <img src="/blog/ray-tracing/img.png" class="center"></img>
+        <figcaption>Aluminium with pure reflection </figcaption>
+    </figure>
+</div>
+<br>
+
+<br>
+<div style="display: block; margin-left: auto; margin-right: auto; width: 100%; ">
+    <figure>
+        <img src="/blog/ray-tracing/img3.png" class="center"></img>
+        <figcaption>Aluminium with brushed reflection</figcaption>
+    </figure>
+</div>
+<br>
+
 ## Up-Next
-Will be implementing reflective surfaces next and then transparent ones. Long way to go, strap on major!
+Will be implementing transparent material soon. Long way to go, strap on major!
 
 <br>
 <div style="display: block; margin-left: auto; margin-right: auto; width: 100%; ">
