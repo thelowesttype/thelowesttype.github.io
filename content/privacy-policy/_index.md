@@ -1,8 +1,6 @@
 +++
 title = "Privacy Policy"
 description = "We collect cookies and personal data"
-date = 2021-05-01T08:00:00+00:00
-updated = 2020-05-01T08:00:00+00:00
 draft = false
 
 [extra]

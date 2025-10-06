@@ -10,7 +10,7 @@ template = "about/page.html"
 [extra]
 heading = '<span style="color: #41FF00">$</span> hello homo.sapien'
 +++
-My academic interests are in **Robotics, Controls, Computer Vision and Machine Learning.** 
+My academic interests are in **Robotics, Controls, Computer Vision and Machine Learning.**
 
 *My story you ask?*
 <br>
@@ -24,27 +24,7 @@ Creating water level indicator back in 6<sup>th</sup> grade started my roller co
 - Multi Robot Navigation
 - Digital Synth
 <br><br>
-<h3>Platforms I have worked with</h3>
-<p>
-  <img alt="Raspberry Pi" src="https://img.shields.io/badge/Raspberry Pi-A22846?style=flat-square&logo=raspberrypi&logoColor=white"/>
-  <img alt="Arduino" src="https://img.shields.io/badge/Arduino-00979D?style=flat-square&logo=arduino&logoColor=white" />
-    <img alt="Linux" src="https://img.shields.io/badge/Linux-557C94?style=flat-square&logo=linux&logoColor=white" />
-  <img alt="Google Cloud Platform" src="https://img.shields.io/badge/-Google_Cloud_Platform-1a73e8?style=flat-square&logo=google-cloud&logoColor=white" />
-  <img alt="Python" src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
-  <img alt="Photon" src="https://img.shields.io/badge/-Photon-47848F?style=flat-square&logo=electron&logoColor=white"/>
-    <img alt="C" src="https://img.shields.io/badge/-C-47848F?style=flat-square&logo=C&logoColor=white"/>
-      <img alt="C++" src="https://img.shields.io/badge/-C++-47848F?style=flat-square&logo=cplusplus&logoColor=white"/>
-      <img alt="Unity" src="https://img.shields.io/badge/-Unity-000000?style=flat-square&logo=unity&logoColor=white"/>
-       <img alt="Adobe After Effects" src="https://img.shields.io/badge/-After Effects-9999FF?style=flat-square&logo=adobeaftereffects&logoColor=white"/>
-        <img alt="Adobe Premier Pro" src="https://img.shields.io/badge/-Premier Pro-9999FF?style=flat-square&logo=adobepremierepro&logoColor=white"/>
-       <img alt="Adobe Illustrator" src="https://img.shields.io/badge/-Illustrator-FF9A00?style=flat-square&logo=adobeillustrator&logoColor=white"/>
-		<img alt="Adobe Photoshop" src="https://img.shields.io/badge/-Photoshop -31A8FF?style=flat-square&logo=adobephotoshop&logoColor=white"/>
-		 <img alt="Blender" src="https://img.shields.io/badge/-Blender -F5792A?style=flat-square&logo=blender&logoColor=white"/>
-		<img alt="Docker" src="https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white"/>
-</p>
 
-### GitHub Contribution
-<a href="https://github.com/codeck313" target="_blank"><img src="http://ghchart.rshah.org/codeck313" alt="codeck313's Github chart" style="width: 100%;"/></a>
 
 
 
