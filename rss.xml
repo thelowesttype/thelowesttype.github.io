@@ -1,0 +1,1310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+      <title>The Lowest Type</title>
+        <link>https://thelowesttype.github.io</link>
+        <description>The Very Best of the Humans</description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://thelowesttype.github.io/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Fri, 03 Oct 2025 07:09:00 +0000</lastBuildDate>
+        <item>
+            <title>Server-Shenanigans</title>
+            <pubDate>Fri, 03 Oct 2025 07:09:00 +0000</pubDate>
+            <link>https://thelowesttype.github.io/blog/server-setup/</link>
+            <guid>https://thelowesttype.github.io/blog/server-setup/</guid>
+            <description>&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;server-setup&#x2F;car-and-server.jpg&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Guess which costs more the vehicle or the server?&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;p&gt;So picture this: you recently &quot;borrowed&quot; a shiny new server from another lab — full of optimism, sunshine, and rainbows. You plug it in, power it up… and the happiness evaporates instantly.&lt;&#x2F;p&gt;
+&lt;p&gt;There are fifty users, all blessed with root access, and the hard drive is so full that the desktop won&#x27;t even load. That&#x27;s when it hits you — the reality of what you&#x27;ve just inherited.&lt;&#x2F;p&gt;
+&lt;p&gt;You&#x27;re not just getting a server; you&#x27;re inheriting years of chaos. You&#x27;ll need new hard drives, a proper user management system, and—let&#x27;s face it—you&#x27;ll probably end up writing half the management software yourself. Because who else will?&lt;&#x2F;p&gt;
+&lt;p&gt;After fixing the same problems approximately 472 times, I decided it was time to automate the pain. Hence, this lovingly chaotic survival manual for Server Maintenance — a place where Docker reigns supreme and &lt;code&gt;&#x2F;scratch&lt;&#x2F;code&gt; is your only true home.&lt;&#x2F;p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;In theory, automation saves time. In practice, it just breaks faster while you&#x27;re asleep.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;em&gt;- 2AM me&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;h2 id=&quot;the-server-in-its-current-form&quot;&gt;The Server in Its Current Form&lt;&#x2F;h2&gt;
+&lt;p&gt;Let&#x27;s start with what the server actually is today. It&#x27;s a GPU-powered workspace for robotics, vision, and AI research. Everyone gets their own sandbox, isolation via Docker, and shared resources when needed.&lt;&#x2F;p&gt;
+&lt;p&gt;The key services running include:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Docker&lt;&#x2F;strong&gt; – The heart of everything. All user workloads run here.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;NVIDIA Container Toolkit&lt;&#x2F;strong&gt; – GPU passthrough support so your PyTorch models don&#x27;t cry.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Telert&lt;&#x2F;strong&gt; – Powers discord alert and notification system.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Prometheus + Grafana (planned)&lt;&#x2F;strong&gt; – For proper monitoring, once I stop duct-taping scripts together.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Custom maintenance scripts&lt;&#x2F;strong&gt; – Bash automation for user creation, cleanup, and resource tracking.&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;strong&gt;Cronitor&lt;&#x2F;strong&gt; - To keep track of the maintenance scripts&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;Storage lives under &lt;code&gt;&#x2F;scratch&#x2F;&lt;&#x2F;code&gt;, managed via LVM, so we can expand capacity when someone inevitably drops a 500GB dataset in the wrong place.&lt;&#x2F;p&gt;
+&lt;p&gt;Each user has:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;A personal &lt;code&gt;&#x2F;scratch&#x2F;&amp;lt;username&amp;gt;&lt;&#x2F;code&gt; directory&lt;&#x2F;li&gt;
+&lt;li&gt;Access to GPUs via Docker&lt;&#x2F;li&gt;
+&lt;li&gt;A shared &lt;code&gt;&#x2F;scratch&#x2F;common&lt;&#x2F;code&gt; space for collaborative data&lt;&#x2F;li&gt;
+&lt;li&gt;And, ideally, no root access (anymore)&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h2 id=&quot;the-usage-sop-standard-operating-procedure&quot;&gt;The Usage SOP (Standard Operating Procedure)&lt;&#x2F;h2&gt;
+&lt;p&gt;Every user runs their workloads only through Docker containers. That&#x27;s non-negotiable — partly for security, partly because that&#x27;s the only way the server stays sane.&lt;&#x2F;p&gt;
+&lt;p&gt;The basic workflow is:&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;Log in via SSH: &lt;code&gt;ssh username@10.40.29.169&lt;&#x2F;code&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;Navigate to your personal directory: &lt;code&gt;cd &#x2F;scratch&#x2F;&amp;lt;username&amp;gt;&lt;&#x2F;code&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;Launch your environment using Docker (custom image or base image). &lt;a href=&quot;&#x2F;blog&#x2F;server-setup&#x2F;Dockerfile.txt&quot;&gt;Sample Dockerfile&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;Save all outputs back into your scratch space&lt;&#x2F;li&gt;
+&lt;li&gt;Clean up after yourself&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;h3 id=&quot;common-docker-commands-you-ll-actually-use&quot;&gt;Common Docker Commands You&#x27;ll Actually Use&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Check what&amp;#39;s running (and by whom)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; ps&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -a
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Launch a container with GPU access
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; run&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --gpus&lt;&#x2F;span&gt;&lt;span&gt; all&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -it -v&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch&#x2F;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;USER&lt;&#x2F;span&gt;&lt;span&gt;:&#x2F;workspace your-image:tag
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Build your custom image
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; build&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -t&lt;&#x2F;span&gt;&lt;span&gt; your-image:tag .
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Check GPU availability
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;nvidia-smi
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Monitor GPU usage continuously
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;watch&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -n&lt;&#x2F;span&gt;&lt;span&gt; 1 nvidia-smi
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Kill your container when done
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; stop &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;&amp;lt;&lt;&#x2F;span&gt;&lt;span&gt;container-id&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; rm &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;&amp;lt;&lt;&#x2F;span&gt;&lt;span&gt;container-id&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;There&#x27;s also a shared etiquette:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;&#x2F;scratch&#x2F;common&lt;&#x2F;code&gt; is not your personal archive. Use it for temporary sharing.&lt;&#x2F;li&gt;
+&lt;li&gt;GPU usage is monitored — so don&#x27;t hog them. Ideally would have loved the server to be running SLURM but for a 1 GPU system felt like overkill at that time.&lt;&#x2F;li&gt;
+&lt;li&gt;Old containers and images are purged automatically. Don&#x27;t panic when they disappear.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;In short: use the server like a polite houseguest. Leave it cleaner than you found it (Sadly not everyone will do that. And hence you need enforcers too!)&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;the-initial-setup-from-chaos-to-functionality&quot;&gt;The Initial Setup: From Chaos to Functionality&lt;&#x2F;h2&gt;
+&lt;p&gt;When I first got the server, the plan was simple — wipe as little as possible and make it functional again. Of course, nothing is ever simple.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;phase-1-storage-salvation-with-lvm&quot;&gt;Phase 1: Storage Salvation with LVM&lt;&#x2F;h3&gt;
+&lt;p&gt;The existing drives were a mess, and we needed expandability. LVM (Logical Volume Management) was the answer.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# First, identify your new disk
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; fdisk&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -l
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;lsblk
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Create a physical volume
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; pvcreate &#x2F;dev&#x2F;sdX1
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Either create a new volume group or extend existing
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; vgcreate vgcodepool &#x2F;dev&#x2F;sdX1    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# New VG
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# OR
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; vgextend vgcodepool &#x2F;dev&#x2F;sdX1    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Add to existing
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Create&#x2F;extend logical volume
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; lvcreate&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -L&lt;&#x2F;span&gt;&lt;span&gt; 1500G&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -n&lt;&#x2F;span&gt;&lt;span&gt; scratch vgcodepool
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# OR
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; lvextend&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -l&lt;&#x2F;span&gt;&lt;span&gt; +100%&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;FREE&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;dev&#x2F;vgcodepool&#x2F;scratch
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Format and resize
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; mkfs.ext3 &#x2F;dev&#x2F;vgcodepool&#x2F;scratch
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; resize2fs &#x2F;dev&#x2F;vgcodepool&#x2F;scratch
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Mount it
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; mount&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -t&lt;&#x2F;span&gt;&lt;span&gt; ext3 &#x2F;dev&#x2F;vgcodepool&#x2F;scratch &#x2F;scratch
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;To make it permanent, I added this to &lt;code&gt;&#x2F;etc&#x2F;fstab&lt;&#x2F;code&gt;:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;UUID&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;=&amp;lt;&lt;&#x2F;span&gt;&lt;span&gt;your-uuid&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;&amp;gt;&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;ext3&lt;&#x2F;span&gt;&lt;span&gt; defaults 0 2
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;The beauty of LVM? When someone inevitably fills the disk again, I just add another drive, extend the volume, and resize the filesystem. No downtime, no data migration.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;phase-2-user-management-overhaul&quot;&gt;Phase 2: User Management Overhaul&lt;&#x2F;h3&gt;
+&lt;p&gt;Everyone&#x27;s root access was revoked. Users were re-created with isolated directories and proper permissions. I wrote two scripts that became my best friends — and eventually, the backbone of the entire user management system.&lt;&#x2F;p&gt;
+&lt;p&gt;The &lt;code&gt;create_user.sh&lt;&#x2F;code&gt; script handles everything from account creation to sending welcome emails. The &lt;code&gt;delete_user.sh&lt;&#x2F;code&gt; script ensures safe removal with optional workspace backup. These aren&#x27;t just convenience tools — they enforce consistency and security that manual management could never guarantee.&lt;&#x2F;p&gt;
+&lt;p&gt;(See &lt;a href=&quot;https:&#x2F;&#x2F;thelowesttype.github.io&#x2F;blog&#x2F;server-setup&#x2F;#the-maintainer-toolkit-teaching-the-server-to-look-after-itself&quot;&gt;The Maintainer Toolkit&lt;&#x2F;a&gt; section below for detailed breakdown of how these scripts work.)&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;phase-3-docker-and-gpu-setup&quot;&gt;Phase 3: Docker and GPU Setup&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Install Docker
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;curl&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -fsSL&lt;&#x2F;span&gt;&lt;span&gt; https:&#x2F;&#x2F;get.docker.com&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -o&lt;&#x2F;span&gt;&lt;span&gt; get-docker.sh
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; sh get-docker.sh
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# NVIDIA Container Toolkit
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;distribution&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;$(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt; &#x2F;etc&#x2F;os-release&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;echo &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;ID&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;VERSION_ID&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;curl&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -s -L&lt;&#x2F;span&gt;&lt;span&gt; https:&#x2F;&#x2F;nvidia.github.io&#x2F;nvidia-docker&#x2F;gpgkey &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;| &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; apt-key add -
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;curl&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -s -L&lt;&#x2F;span&gt;&lt;span&gt; https:&#x2F;&#x2F;nvidia.github.io&#x2F;nvidia-docker&#x2F;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;distribution&lt;&#x2F;span&gt;&lt;span&gt;&#x2F;nvidia-docker.list &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;| &lt;&#x2F;span&gt;&lt;span&gt;\
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; tee &#x2F;etc&#x2F;apt&#x2F;sources.list.d&#x2F;nvidia-docker.list
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; apt-get update
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; apt-get install&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -y&lt;&#x2F;span&gt;&lt;span&gt; nvidia-container-toolkit
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; nvidia-ctk runtime configure&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --runtime&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;docker
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; systemctl restart docker
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Test it
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; run&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --rm --gpus&lt;&#x2F;span&gt;&lt;span&gt; all ubuntu nvidia-smi
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;I also moved Docker&#x27;s root directory to avoid filling up the system partition:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Stop everything
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; systemctl stop docker docker.socket containerd
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Move the data
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; mv &#x2F;var&#x2F;lib&#x2F;docker &#x2F;home&#x2F;docker_root&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Update &#x2F;etc&#x2F;docker&#x2F;daemon.json
+&lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;data-root&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;&#x2F;home&#x2F;docker_root&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;runtimes&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;nvidia&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;: {
+&lt;&#x2F;span&gt;&lt;span&gt;      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;path&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;nvidia-container-runtime&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;runtimeArgs&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;[]
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;  }
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Restart and verify
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; systemctl start docker
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; info &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;| &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;grep &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;Docker Root Dir&amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;the-maintainer-toolkit-teaching-the-server-to-look-after-itself&quot;&gt;The Maintainer Toolkit: Teaching the Server to Look After Itself&lt;&#x2F;h2&gt;
+&lt;p&gt;Once the server reached a somewhat stable state, I realized there was no going back — maintenance wasn&#x27;t a one-time thing. I needed to build tools that could manage users, track usage, and keep resources under control without my constant intervention.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;create-user-sh-the-onboarding-wizard&quot;&gt;create_user.sh — The Onboarding Wizard&lt;&#x2F;h3&gt;
+&lt;p&gt;This script is my answer to &quot;can you give me access to the server?&quot; Instead of manually creating users, setting up directories, configuring permissions, and sending welcome emails, I now just run one command.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Basic usage:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; .&#x2F;create_user.sh stopthepain stopthepain@iisc.ac.in
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; .&#x2F;create_user.sh john john@example.com &#x2F;scratch&#x2F;john_custom
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;What happens under the hood:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Validation first&lt;&#x2F;strong&gt; — Checks if the script is run as root, validates username format (lowercase, starts with letter&#x2F;underscore), and verifies email format. Because the last thing you want is a user named &quot;admin@123&quot; breaking your system.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;User creation with security baked in:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;useradd&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -m -s&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;bin&#x2F;bash username
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;echo &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;username:airl&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;| &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;chpasswd
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;chage&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -d&lt;&#x2F;span&gt;&lt;span&gt; 0 username  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Forces password change on first login
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;usermod&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -aG&lt;&#x2F;span&gt;&lt;span&gt; docker username
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;The temporary password &lt;code&gt;airl&lt;&#x2F;code&gt; was chosen because it&#x27;s memorable but meaningless. Users can&#x27;t avoid changing it — the system forces them to on first SSH login.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Workspace setup with proper isolation:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;mkdir&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -p&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch&#x2F;username
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;chown&lt;&#x2F;span&gt;&lt;span&gt; username:username &#x2F;scratch&#x2F;username
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;chmod&lt;&#x2F;span&gt;&lt;span&gt; 700 &#x2F;scratch&#x2F;username  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Only the user can access their space
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;The 700 permissions are critical. Nobody else can peek into your directory, not even other users. Privacy by default.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Automated email notification&lt;&#x2F;strong&gt; — The script sends a complete onboarding email with:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;SSH connection details&lt;&#x2F;li&gt;
+&lt;li&gt;Temporary password (with explicit instructions to change it)&lt;&#x2F;li&gt;
+&lt;li&gt;Workspace location&lt;&#x2F;li&gt;
+&lt;li&gt;Usage guidelines (Docker-only policy)&lt;&#x2F;li&gt;
+&lt;li&gt;Discord channel link for support&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;The email template is built right into the script, so you can customize it for your lab&#x27;s specific needs. Mine includes a &quot;GPU goes burrr&quot; signature because why not.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;&lt;strong&gt;Why this matters:&lt;&#x2F;strong&gt; Before this script, user onboarding took 15-20 minutes of manual work. Now it&#x27;s a single command and 30 seconds. More importantly, it&#x27;s consistent — every user gets the same secure setup, no exceptions, no forgotten steps.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;delete-user-sh-the-responsible-bouncer&quot;&gt;delete_user.sh — The Responsible Bouncer&lt;&#x2F;h3&gt;
+&lt;p&gt;Removing users is trickier than creating them. You can&#x27;t just run &lt;code&gt;userdel&lt;&#x2F;code&gt; and call it a day — what about their data? Their running processes? Their Docker containers?&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Usage patterns:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Safe removal (default) - saves workspace
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; .&#x2F;delete_user.sh stopthepain
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Full removal - deletes everything
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; .&#x2F;delete_user.sh stopthepain&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --delete
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Custom workspace path
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; .&#x2F;delete_user.sh john &#x2F;scratch&#x2F;john_custom&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --save
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;The deletion workflow:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Validation and confirmation&lt;&#x2F;strong&gt; — Checks if user exists, verifies root access, and asks for explicit &quot;yes&quot; confirmation. No accidental deletions allowed.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Process termination:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;pkill&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -9 -u&lt;&#x2F;span&gt;&lt;span&gt; username
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sleep&lt;&#x2F;span&gt;&lt;span&gt; 2  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Give processes time to actually die
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Kills all running processes owned by the user. The sleep is important — some processes are stubborn and need a moment to realize they&#x27;re dead.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Docker group cleanup:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;gpasswd&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -d&lt;&#x2F;span&gt;&lt;span&gt; username docker
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Removes Docker access before deletion. Otherwise, the user&#x27;s containers might become orphaned.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Workspace handling — The critical decision:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Option A: Save the workspace (default and recommended)&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;timestamp&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;$(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;date&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt; +&amp;quot;%Y%m%d_%H%M%S&amp;quot;)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;backup_dir&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;&#x2F;scratch&#x2F;user_backups&#x2F;${&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;username&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;}_${&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;timestamp&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;}&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;cp&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -r&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch&#x2F;username $&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;backup_dir
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;chown&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -R&lt;&#x2F;span&gt;&lt;span&gt; iris:iris $&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;backup_dir
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;chmod&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -R&lt;&#x2F;span&gt;&lt;span&gt; 700 $&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffffff;&quot;&gt;backup_dir
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;The script copies the entire workspace to &lt;code&gt;&#x2F;scratch&#x2F;user_backups&#x2F;username_timestamp&#x2F;&lt;&#x2F;code&gt;, changes ownership to the maintainer account (&lt;code&gt;iris&lt;&#x2F;code&gt;), and locks down permissions. It also creates a metadata file with:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;Original username and path&lt;&#x2F;li&gt;
+&lt;li&gt;Backup timestamp&lt;&#x2F;li&gt;
+&lt;li&gt;Server hostname&lt;&#x2F;li&gt;
+&lt;li&gt;Reason for backup&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;This is the safe option. Maybe the user left important results behind. Maybe they&#x27;re coming back. Maybe you just don&#x27;t want to be responsible for deleting someone&#x27;s PhD thesis.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Option B: Delete the workspace (use with caution)&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;rm&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -rf&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch&#x2F;username
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Permanent deletion. The script asks for confirmation twice — once at the start, once before actually nuking the directory. I&#x27;ve seen too many &quot;wait, I needed that&quot; moments to skip the double-check.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;User account removal:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;userdel&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -r&lt;&#x2F;span&gt;&lt;span&gt; username  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Remove user and home directory
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;If this fails (sometimes it does), the script falls back to &lt;code&gt;userdel username&lt;&#x2F;code&gt; followed by manual home directory cleanup. Always have a Plan B.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;&lt;strong&gt;Real-world usage patterns:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Temporary collaborator leaving:&lt;&#x2F;strong&gt; &lt;code&gt;--save&lt;&#x2F;code&gt; (default). Their data might be useful later, and storage is cheaper than regret.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;User explicitly requested deletion:&lt;&#x2F;strong&gt; &lt;code&gt;--delete&lt;&#x2F;code&gt; after confirming they&#x27;ve backed up everything they need.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Cleaning up after a workshop:&lt;&#x2F;strong&gt; &lt;code&gt;--delete&lt;&#x2F;code&gt; for temporary accounts that were only used for demos.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;&lt;strong&gt;The backup structure looks like this:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#282a36;color:#f8f8f2;&quot;&gt;&lt;code&gt;&lt;span&gt;&#x2F;scratch&#x2F;user_backups&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;├── stopthepain_20241015_143022&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;│   ├── backup_metadata.txt
+&lt;&#x2F;span&gt;&lt;span&gt;│   ├── datasets&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;│   ├── models&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;│   └── results&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;└── john_20241018_091533&#x2F;
+&lt;&#x2F;span&gt;&lt;span&gt;    ├── backup_metadata.txt
+&lt;&#x2F;span&gt;&lt;span&gt;    └── project_files&#x2F;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Every backup is timestamped, documented, and owned by the maintainer. If someone comes back six months later asking &quot;where&#x27;s my data?&quot;, you can actually find it.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;usage-monitor-sh-the-enforcer&quot;&gt;usage_monitor.sh — The Enforcer&lt;&#x2F;h3&gt;
+&lt;p&gt;This script runs every 15 minutes via cron and is responsible for keeping the server sane. It monitors everything, throttles misbehaving processes, and cleans up Docker waste.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Manual run (see what&amp;#39;s happening)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;.&#x2F;usage_monitor.sh
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Interactive cleanup
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;.&#x2F;usage_monitor.sh&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --cleanup
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Automatic cleanup (no questions asked)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;.&#x2F;usage_monitor.sh&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --cleanup-auto
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Specific cleanup steps
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;.&#x2F;usage_monitor.sh&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --cleanup-step&lt;&#x2F;span&gt;&lt;span&gt; build-cache
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;.&#x2F;usage_monitor.sh&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --cleanup-step&lt;&#x2F;span&gt;&lt;span&gt; exited-containers
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;.&#x2F;usage_monitor.sh&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --cleanup-step&lt;&#x2F;span&gt;&lt;span&gt; unused-images
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;What it monitors:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;CPU usage (threshold: 80%)&lt;&#x2F;li&gt;
+&lt;li&gt;Memory usage (threshold: 80%)&lt;&#x2F;li&gt;
+&lt;li&gt;Disk usage (threshold: 80%)&lt;&#x2F;li&gt;
+&lt;li&gt;GPU usage&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;&lt;strong&gt;What it does when thresholds are breached:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;Sends notifications via Telert&lt;&#x2F;li&gt;
+&lt;li&gt;Throttles CPU-hogging processes&lt;&#x2F;li&gt;
+&lt;li&gt;Starts cleanup procedures if disk is full&lt;&#x2F;li&gt;
+&lt;li&gt;Deletes oldest and largest files from &lt;code&gt;&#x2F;scratch&lt;&#x2F;code&gt; (after warnings on Discord)&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;&lt;strong&gt;Docker cleanup priorities:&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;Build cache&lt;&#x2F;li&gt;
+&lt;li&gt;Stopped&#x2F;exited containers&lt;&#x2F;li&gt;
+&lt;li&gt;Unused images (except whitelisted ones)&lt;&#x2F;li&gt;
+&lt;li&gt;Dangling volumes&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;The whitelist protects critical images from auto-deletion. You can customize it in the script.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;scheduled-automation-with-cron&quot;&gt;Scheduled Automation with Cron&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;crontab&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -e
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;My current setup:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Resource monitoring every 15 minutes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;*&#x2F;15 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;* * * *&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;home&#x2F;iris&#x2F;maintainer-tools&#x2F;usage_monitor.sh
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# GPU monitoring every 30 minutes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;*&#x2F;30 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;* * * *&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;home&#x2F;iris&#x2F;maintainer-tools&#x2F;gpu_monitor.sh
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Weekly automatic cleanup (Sunday 2 AM)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt; 2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;* *&lt;&#x2F;span&gt;&lt;span&gt; 0 &#x2F;home&#x2F;iris&#x2F;maintainer-tools&#x2F;usage_monitor.sh&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; --cleanup-auto
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Monthly root partition cleanup (1st of month, 3 AM)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt; 3 1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;* *&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;home&#x2F;iris&#x2F;maintainer-tools&#x2F;cleanUpRoot.sh
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;notification-system-with-telert&quot;&gt;Notification System with Telert&lt;&#x2F;h3&gt;
+&lt;p&gt;Setting up Telert was surprisingly painless:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;pip&lt;&#x2F;span&gt;&lt;span&gt; install telert
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;telert&lt;&#x2F;span&gt;&lt;span&gt; init    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Follow prompts to connect your Telegram bot
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Now, every script can send notifications:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;echo &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;Disk usage critical: 95%&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;| &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;telert&lt;&#x2F;span&gt;&lt;span&gt; send
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;telert &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;Weekly cleanup completed&amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;It&#x27;s integrated into all monitoring scripts. When something breaks at 3 AM, I get a message. When cleanup finishes, I get a message. It&#x27;s like having a server that actually talks back.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;emergency-commands-you-ll-need&quot;&gt;Emergency Commands You&#x27;ll Need&lt;&#x2F;h3&gt;
+&lt;p&gt;When things go sideways (and they will), here&#x27;s your survival kit:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Find what&amp;#39;s eating disk space
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; ncdu &#x2F;scratch
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; du&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -sh&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch&#x2F;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;* | &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sort&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -hr &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;| &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;head&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -10
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Find files larger than 500MB
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; find &#x2F;scratch&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -type&lt;&#x2F;span&gt;&lt;span&gt; f&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -size&lt;&#x2F;span&gt;&lt;span&gt; +500M&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -exec&lt;&#x2F;span&gt;&lt;span&gt; du&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -h &lt;&#x2F;span&gt;&lt;span&gt;{} &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;\; | &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sort&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -hr
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Check Docker&amp;#39;s disk usage
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; system df
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Nuclear option: clean everything Docker
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; system prune&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -a --volumes
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Kill all processes for a user
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; pkill&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -9 -u&lt;&#x2F;span&gt;&lt;span&gt; username
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# See who&amp;#39;s using the GPU
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; fuser&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -v&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;dev&#x2F;nvidia&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;*
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Check LVM space availability
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; vgs
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;sudo&lt;&#x2F;span&gt;&lt;span&gt; pvs
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;df&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt; -h&lt;&#x2F;span&gt;&lt;span&gt; &#x2F;scratch
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;the-pain-points-and-the-lessons&quot;&gt;The Pain Points and the Lessons&lt;&#x2F;h2&gt;
+&lt;p&gt;Every setup has scars. Here are a few from mine:&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Storage growth is relentless.&lt;&#x2F;strong&gt; No matter how much space you add, someone will fill it with raw data dumps. LVM was a lifesaver, but automation to delete old files became mandatory.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Monitoring is a full-time job.&lt;&#x2F;strong&gt; Without automation, you&#x27;ll never catch overuse in time. The moment you stop watching, someone will spawn 50 containers and consume all the RAM.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Automation saves your sanity.&lt;&#x2F;strong&gt; Anything you can script, you must. Otherwise, you&#x27;ll repeat the same fix every week. My monitoring scripts have saved me more weekend debugging sessions than I can count.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Root access ruins everything.&lt;&#x2F;strong&gt; It took one afternoon to revoke and three days to recover from what others had done. Never again.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Documentation is for future you.&lt;&#x2F;strong&gt; I wrote everything down, not for others, but because 2 AM me forgets what 2 PM me configured. This blog is partly that documentation.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;the-workflow-in-practice&quot;&gt;The Workflow in Practice&lt;&#x2F;h2&gt;
+&lt;p&gt;Here&#x27;s what a typical day looks like now:&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Morning:&lt;&#x2F;strong&gt; Check Discord notifications. See that usage_monitor flagged high disk usage last night and cleaned 50GB automatically. No intervention needed.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Midday:&lt;&#x2F;strong&gt; New lab member joins. Run &lt;code&gt;create_user.sh&lt;&#x2F;code&gt;, they get an email with credentials and instructions. They&#x27;re up and running in 5 minutes.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Evening:&lt;&#x2F;strong&gt; Someone accidentally fills their directory with dataset copies. Monitoring script catches it, sends a warning, and if they don&#x27;t clean up, automatically removes the oldest files after 24 hours.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Night:&lt;&#x2F;strong&gt; Weekly cleanup runs automatically. Docker cache cleared, old containers removed, logs rotated. I wake up to a notification that everything completed successfully.&lt;&#x2F;p&gt;
+&lt;p&gt;The server mostly runs itself now. I finally have time to get back to robotics — though part of me secretly enjoys watching the maintenance logs scroll by at 2 AM, knowing it&#x27;s all working by itself.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;where-to-find-everything&quot;&gt;Where to Find Everything&lt;&#x2F;h2&gt;
+&lt;p&gt;All the scripts mentioned here are available:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;&#x2F;blog&#x2F;server-setup&#x2F;create_user.sh&quot;&gt;create_user.sh&lt;&#x2F;a&gt; — User creation automation with email notifications&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;&#x2F;blog&#x2F;server-setup&#x2F;delete_user.sh&quot;&gt;delete_user.sh&lt;&#x2F;a&gt; — Safe user removal with workspace backup options&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;&#x2F;blog&#x2F;server-setup&#x2F;usage_monitor.sh&quot;&gt;usage_monitor.sh&lt;&#x2F;a&gt; — The main enforcer for resource monitoring and cleanup&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;&#x2F;blog&#x2F;server-setup&#x2F;Dockerfile.txt&quot;&gt;Sample Dockerfile&lt;&#x2F;a&gt; — Template for users&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;The full technical documentation with every command, configuration file, and troubleshooting step lives in the maintainer guide. This blog is just the highlights and the philosophy behind it all.&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;p&gt;I never planned to become a sysadmin. I just wanted a stable compute setup for robotics work. But when you inherit a half-broken machine full of mystery users and full disks, you learn fast. Now, with automation in place, the server mostly runs itself (even after I left the lab).&lt;&#x2F;p&gt;
+&lt;br&gt;
+&lt;p&gt;&lt;span style=&quot;color:green&quot;&gt;$&lt;&#x2F;span&gt; press &lt;kbd&gt;CTRL&lt;&#x2F;kbd&gt;+&lt;kbd&gt;W&lt;&#x2F;kbd&gt; to end the session.&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>DWA - Helping robots move in real world</title>
+            <pubDate>Sun, 03 Jul 2022 07:13:50 +0000</pubDate>
+            <link>https://thelowesttype.github.io/blog/dwa-planner/</link>
+            <guid>https://thelowesttype.github.io/blog/dwa-planner/</guid>
+            <description>&lt;p&gt;Recently I was part of a team whose task was to figure out the motion planning for a &lt;a href=&quot;https:&#x2F;&#x2F;www.botsync.co&#x2F;botsync-copernicus.html&quot; target=&quot;_blank&quot;&gt;Copernicus Robot&lt;&#x2F;a&gt; such that it can avoid obstacles and reach the goal autonomously. But before we dive into how I achieved that let&#x27;s get a few basics right.&lt;&#x2F;p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Few ideas work on the first try. Iteration is key to innovation.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;p&gt;&lt;em&gt;- Sebastian Thrun&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;what-is-motion-planning&quot;&gt;What is motion planning?&lt;&#x2F;h2&gt;
+&lt;p&gt;Motion planning is a term used in robotics for the process of breaking down the desired movement task into discrete motions that satisfy movement constraints and possibly optimize some aspect of the movement.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;dwa-traj.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Trajectory of robot moving through obstacles&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h2 id=&quot;what-are-the-usual-approaches-for-it&quot;&gt;What are the usual approaches for it?&lt;&#x2F;h2&gt;
+&lt;p&gt;Collision avoidance algorithm is mainly of 2 types: &lt;i&gt;global and local&lt;&#x2F;i&gt;. Some of the global techniques are graph-based, potential field methods and cell decomposition. You can check out the article I wrote about a &lt;i&gt;graph-based approach for a multirobot system &lt;a href=&quot;https:&#x2F;&#x2F;thelowesttype.github.io&#x2F;blog&#x2F;multi-robo&#x2F;&quot; target=&quot;_blank&quot;&gt;here&lt;&#x2F;a&gt;&lt;&#x2F;i&gt;. Global approaches require a complete model of the robot and environment to plan the path. This makes them a bit slow to avoid fast moving obstacles and also if the environment model is not completely accurate.
+&lt;br&gt;
+Whereas local planner considers only a small part of the entire model to make the decisions. But they usually provide a solution that is less optimal and it is more prone to being stuck in local-minima. But they can make a decision at a faster pace and are able to make decisions in a partially available world model. Vector field histogram is a type of local planner approach which uses an occupancy grid to form a model of the nearby environment using sensors. Utilizing the occupancy grid and &lt;i&gt;Artificial Potential Field (APF)&lt;&#x2F;i&gt; it plans the path for the robot.
+&lt;br&gt;
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;occupancy-grid.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Occupancy Grid for given map&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h2 id=&quot;shortcomings-of-previous-approaches-and-dynamic-window-approach-dwa&quot;&gt;Shortcomings of previous approaches and Dynamic Window Approach (DWA)?&lt;&#x2F;h2&gt;
+&lt;p&gt;All the approaches discussed above don&#x27;t really take the limitations of the robot into consideration (like max acceleration). To deal with this DWA was proposed.
+&lt;br&gt;
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 80%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;path-plotted.gif&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Trajectory planned by DWA&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+With the introduction out the way let&#x27;s get to how DWA works!
+&lt;br&gt;
+&lt;hr&gt;
+&lt;div style=&quot;text-align: center; &quot;&gt;
+&lt;img src=&quot;https:&#x2F;&#x2F;media.giphy.com&#x2F;media&#x2F;8qJov1TOy2hI4&#x2F;giphy.gif&quot;
+     style=&quot;max-width: 40%;&quot;&gt;
+&lt;br&gt;&lt;br&gt;
+&lt;i&gt;The scope of the article will mainly deal with the algorithm proposed in the original paper[1].&lt;&#x2F;i&gt;
+&lt;&#x2F;div&gt;
+&lt;hr&gt;
+&lt;h2 id=&quot;equations-defining-robot-drive&quot;&gt;Equations defining robot drive&lt;&#x2F;h2&gt;
+&lt;p&gt;To be able to provide with motion plan within the limitation of the robot we need to model the robot&#x27;s drive (How does the robot move). To simplify things we&#x27;ll consider it to be a mobile robot with a &lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Differential_wheeled_robot&quot; target=&quot;_blank&quot;&gt;differential drive&lt;&#x2F;a&gt;
+&lt;br&gt;
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 60%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;kinematics_s.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Kinematics of differential drive&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+General motion equations can be written as:
+$$
+x(t_{n}) = x(t_{0}) + \int_{t_{0}}^{t_{n}}v(t) \cdot \cos(\theta(t)) dt
+\\[2em]
+y(t_{n}) = y(t_{0}) + \int_{t_{0}}^{t_{n}}v(t) \cdot \sin(\theta(t)) dt
+$$
+where,
+$$
+x(t_{n})\space and\space y(t_{n})\space is\space the\space position\space of\space the\space robot\space at\space time\space t_{n}\\
+and\space v(t) \space  denotes \space  velocity \space  at \space  time \space  t\\
+and\space \theta(t) denotes \space  orientation \space  at \space  time \space  t
+$$
+Rewriting v(t) and &amp;#952;(t) in terms of initial configuration and acceleration as:
+$$
+x(t_{n}) = x(t_{0}) + \int_{t_{0}}^{t_{n}} \bigg( v(t_0) + \int_{t_0}^t a(\hat{t}) d\hat{t}\bigg) \cdot \cos\bigg(\theta(t_0) + \int_{t_0}^t \Big( \omega(t_0) + \int_{t_0}^t \alpha(\hat{t}) d\hat{t} \Big) dt\bigg)\\[2em]
+y(t_{n}) = y(t_{0}) + \int_{t_{0}}^{t_{n}} \bigg( v(t_0) + \int_{t_0}^t a(\hat{t}) d\hat{t}\bigg) \cdot \sin\bigg(\theta(t_0) + \int_{t_0}^t \Big( \omega(t_0) + \int_{t_0}^t \alpha(\hat{t}) d\hat{t} \Big) dt\bigg)
+$$
+where,
+$$
+a(\hat{t})\space and\space \alpha(\hat{t})\space are\space linear\space acceleration\\
+and\space angular\space acceleration\\
+in\space time\space interval\space \hat{t}\in[t_0,t]
+$$
+With this, we have equations that are based on initial configuration and acceleration only!
+&lt;br&gt;
+Considering hardware restriction, all the variable values will be discrete in nature and hence the above equations need to be discretized. Further, we can simplify them by approximating constant robot velocity for a short interval of time [t&lt;sub&gt;i&lt;&#x2F;sub&gt;,t&lt;sub&gt;i+1&lt;&#x2F;sub&gt;]. Doing so introduces error in the trajectory but because the robot&#x27;s position is measured periodically we can neglect it. The final motion equation can be written as,
+$$
+x(t_{n}) = x(t_{0}) + \sum_{i=0}^{n-1}\int_{t_{i}}^{t_{i+1}}v_i \cdot \cos\bigg(\theta(t_i) + \omega_i \cdot (\hat{t}-t_i)\bigg)d\hat{t}\\[2em]
+y(t_{n}) = y(t_{0}) + \sum_{i=0}^{n-1}\int_{t_{i}}^{t_{i+1}}v_i \cdot \sin\bigg(\theta(t_i) + \omega_i \cdot (\hat{t}-t_i)\bigg)d\hat{t}
+$$
+where,
+$$
+n\space denotes \space number \space of \space time \space intervals
+$$
+&lt;p&gt;After further simplification of the integral one can transform the above equations into a circular trajectory equation. Something like this,
+$$
+(F^i_x - M^i_x)^2 + (F^i_y - M^i_y)^2 = (\frac{v_i}{\omega_i})^2
+$$
+where,
+$$
+(M^i_x,M^i_y) \space represents \space center \space of \space i^{th} \space circle
+$$&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;dwa-approach&quot;&gt;DWA Approach&lt;&#x2F;h2&gt;
+&lt;p&gt;In this approach, the search for the best trajectory is done in the velocity space. The trajectory of the robot is a sequence of circular arcs. Each arc&#x2F;curvature is defined by (v&lt;sub&gt;i&lt;&#x2F;sub&gt;,ω&lt;sub&gt;i&lt;&#x2F;sub&gt;). Hence from the above equations, we can say that to reach the goal point for the next n interval we need to determine (v&lt;sub&gt;i&lt;&#x2F;sub&gt;,ω&lt;sub&gt;i&lt;&#x2F;sub&gt;) for each of those n intervals.&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;windowing&quot;&gt;Windowing&lt;&#x2F;h4&gt;
+&lt;p&gt;The way we introduce the dynamics of the robot is by limiting the velocity space being used to find the best trajectory. This operation is called windowing and it restricts the velocities to only the velocities which can be reached within a short interval of time given the max acceleration of the robot.
+&lt;br&gt;
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;possible-traj.gif&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Possible Trajectories&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+$$
+V_d = \bigg\lbrace(v,\omega) | v\in[v_a - a\cdot t,v_a+a\cdot t] \land \omega \in [\omega_a - \alpha \cdot t, \omega_a + \alpha \cdot t]\bigg\rbrace
+$$
+where,
+$$
+a \space and \space \alpha \space are \space acceleration
+$$
+&lt;h4 id=&quot;avoiding-obstacles&quot;&gt;Avoiding Obstacles&lt;&#x2F;h4&gt;
+&lt;p&gt;The above space is then again pruned by considering the only safe trajectories. A trajectory is considered safe only when the pair (v,ω) can stop before it reaches the nearest obstacle.
+$$
+V_a = \bigg\lbrace(v,\omega) | v\le\sqrt{2\cdot dist(v,\omega)\cdot\dot{v_b}} \land \omega\le\sqrt{2\cdot dist(v,\omega)\cdot\dot{\omega_b}}\bigg\rbrace
+$$&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;possible-trajs-1.jpg&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Admissible Trajectories (Note: The obstacle was in the middle)&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+Finally we can write the resulting search space as
+$$
+V_r = V_s \cap V_a \cap V_d
+$$
+&lt;h4 id=&quot;optimization-of-the-trajectory&quot;&gt;Optimization of the trajectory&lt;&#x2F;h4&gt;
+&lt;p&gt;Next, we need to select the best trajectory amongst the admissible ones. To do this we use the following optimization function in the V&lt;sub&gt;r&lt;&#x2F;sub&gt; space.
+$$
+G(v,\omega) = \sigma(\alpha\cdot heading(v,\omega) + \beta \cdot dist(v,\omega) + \gamma \cdot velocity(v,\omega))
+$$
+where,
+$$
+\sigma \space is \space for \space smoothing
+$$
+&lt;br&gt;
+Amongst a set of given trajectory the one with highest &lt;kbd&gt;G(v,ω)&lt;&#x2F;kbd&gt; is selected.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 80%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;plotted-traj.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Robot&#x27;s trajectory (green - admissible traj, red - selected traj)&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;h5 id=&quot;target-heading&quot;&gt;Target Heading&lt;&#x2F;h5&gt;
+&lt;p&gt;&lt;kbd&gt;heading(x,ω)&lt;&#x2F;kbd&gt; function evaluates the alignment of the robot to the target heading. It is given by 180-θ, where θ is the delta between the heading of the robot after it undertakes a given trajectory and the angle goal point makes from the current position of the robot.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 40%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;dwa-planner&#x2F;heading.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Kinematics of differential drive&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h5 id=&quot;clearance&quot;&gt;Clearance&lt;&#x2F;h5&gt;
+&lt;p&gt;&lt;kbd&gt;dist(x,ω)&lt;&#x2F;kbd&gt; function evaluates the minimum distance to the nearest obstacle when a given trajectory is followed. This helps to select the trajectory having the highest clearance from the obstacles.&lt;&#x2F;p&gt;
+&lt;h5 id=&quot;velocity&quot;&gt;Velocity&lt;&#x2F;h5&gt;
+&lt;p&gt;&lt;kbd&gt;velocity(x,ω)&lt;&#x2F;kbd&gt; function just returns the translation velocity robot will have at the end of the trajectory. This helps to select the trajectory which goes the fastest.&lt;&#x2F;p&gt;
+&lt;h5 id=&quot;distance-to-goal&quot;&gt;Distance to Goal&lt;&#x2F;h5&gt;
+&lt;p&gt;&lt;kbd&gt;goalDistance(x,ω)&lt;&#x2F;kbd&gt; function returns the distance between the robot and the goal after it undertakes the given trajectory. This is an addition to the parameters given in the paper. This helps to undertake a trajectory that brings the robot closest to the goal. This is extremely helpful when one allows negative velocities in the window.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;results&quot;&gt;Results&lt;&#x2F;h2&gt;
+&lt;p&gt;The algorithm was implemented in C++ and ROS was used as middleware between the program and the robot. The following were the weights and parameters of the robot.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;yaml&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-yaml &quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;PREDICT_TIME&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;2.0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# time interval size
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;HZ&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;10 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#1&#x2F;deltaT
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;HEADING_COST_GAIN&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;0.5 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Difference in heading between the traj final orientation and goal orientation at present
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;OBSTACLE_COST_GAIN&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;1.0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Applied on the distance to the nearest obstacle
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;SPEED_COST_GAIN&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;0.2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Cost factor for the speed, used to maximize the speed of the robot
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;TO_GOAL_COST_GAIN&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;0.8 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Cost factor on how far robot is wrt goal position
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;MAX_VELOCITY&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;0.5  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#Max vel of robot
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;MIN_VELOCITY&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;0.0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#Min vel of robot
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;MAX_ACCELERATION&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;1.0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#Max acc of robot
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;MAX_YAWRATE&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;0.8 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#Max angular vel of robot
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;MAX_D_YAWRATE&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;2.0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#Max angular acceleration of robot
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h5 id=&quot;implementation-result&quot;&gt;Implementation Result&lt;&#x2F;h5&gt;
+&lt;p&gt;Video of simulation and implementation on a real robot can be seen here:&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;iframe width=&quot;80%&quot; height=&quot;400em&quot;
+    src=&quot;https:&#x2F;&#x2F;www.youtube.com&#x2F;embed&#x2F;yLrRWCSwlro&quot;&gt;
+    &lt;&#x2F;iframe&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;iframe width=&quot;80%&quot; height=&quot;400em&quot;
+    src=&quot;https:&#x2F;&#x2F;www.youtube.com&#x2F;embed&#x2F;2iJl4U1oKJc&quot;&gt;
+    &lt;&#x2F;iframe&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;h2 id=&quot;observations&quot;&gt;Observations&lt;&#x2F;h2&gt;
+&lt;p&gt;As we discussed in the usual approaches local planning gets stuck in local minima and hence needs some additional force (recovery behavior)to get out of it. In the given implementation this part was lacking and hence to mimick recovery behavior the robot was rotated by hand so that it could come out of the given minima. Another realization that happened while making the program was that DWA requires a fast loop time and hence algorithms implemented on python aren&#x27;t best suited for this purpose.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;up-next&quot;&gt;Up-Next&lt;&#x2F;h2&gt;
+&lt;p&gt;The code base is available &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;codeck313&#x2F;copernicus_motion&quot; target=&quot;_blank&quot;&gt;here&lt;&#x2F;a&gt;. In coming days will upload a documentation of what each function does, so stay tuned!&lt;&#x2F;p&gt;
+&lt;br&gt;
+&lt;p&gt;&lt;em&gt;Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use &lt;a href=&quot;https:&#x2F;&#x2F;addons.mozilla.org&#x2F;en-US&#x2F;firefox&#x2F;addon&#x2F;livemarks&#x2F;?utm_source=addons.mozilla.org&amp;amp;utm_medium=referral&amp;amp;utm_content=search&quot;&gt;Livemark&lt;&#x2F;a&gt; for this.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;span style=&quot;color:green&quot;&gt;$&lt;&#x2F;span&gt; press &lt;kbd&gt;CTRL&lt;&#x2F;kbd&gt;+&lt;kbd&gt;W&lt;&#x2F;kbd&gt; to end the session.&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;!-- Note: There must be a blank line between every two lines of the footnote difinition.  --&gt;
+&lt;p&gt;[1] D. Fox, W. Burgard, and S.Thrun, &quot;The dynamic window approach to collision avoidance&quot;, IEEE Robotics Automation Magazine, 1997.&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>Multi Robot Planning</title>
+            <pubDate>Thu, 10 Feb 2022 13:26:37 +0000</pubDate>
+            <link>https://thelowesttype.github.io/blog/multi-robo/</link>
+            <guid>https://thelowesttype.github.io/blog/multi-robo/</guid>
+            <description>&lt;p&gt;So first let me lay the groundwork for what the problem is? And why and what I am trying to achieve here.
+Let&#x27;s start with why the hell I need to do all this?&lt;&#x2F;p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Any sufficiently advanced technology is indistinguishable from magic.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;p&gt;&lt;em&gt;- Arthur C. Clarke&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;why&quot;&gt;Why?&lt;&#x2F;h2&gt;
+&lt;p&gt;So this was a brainchild of the trying to replicate delivery of packages to multiple places using any number of robots. Hence this raised the need to be able to plan in multiagent fashion.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;what-was-i-trying-to-achieve&quot;&gt;What was I trying to achieve?&lt;&#x2F;h2&gt;
+&lt;p&gt;So my aim in the team was to come up with a planning method which will be able to coordinate between all the different robots such that they don&#x27;t collide. Now this needs to happen keeping in mind that overall performance of the robot should be maximized.
+&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+&lt;figure&gt;
+&lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;multiple-robo.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+&lt;figcaption&gt; Multiple Mobile Robots, Path Planning and Motion Coordination &lt;&#x2F;figcaption&gt;
+&lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+Solving this problem can be divided into 2 broad categories: coupled approach and decoupled approach. This division is broadly based on the computational requirement and optimality of the solution generated by the method. In multi-agent problems one needs to achieve optimal balance between achieving computational complexity and optimality of the solution.
+&lt;br&gt;
+For this reason I wished to go with the decoupled approach. It’s way less taxing on the computation side and should give an optimized path.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;defining-the-problem-statement&quot;&gt;Defining the Problem Statement&lt;&#x2F;h2&gt;
+&lt;p&gt;The following was how the arena on which testing was done looked like. The black regions are obstacles and the small notches made at (1,5) and (1,10) are the starting positions. The white area is where the robots can move around. The goals (9 in total) are given in the middle of map as a group of 4 black boxes.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;simple1.jpg&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Arena for testing&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+For this problem statment, I had to make the following assumptions:
+&lt;br&gt;
+- Related to Agent
+    - Start and goal configuration for each agent is clearly defined.
+    - They move at constant speeds.
+    - Their trajectory is followed closely with small error.
+- Related to Environment
+    - Environment (or the workspace) is fully observable.
+    - Environment is a discrete space, which the agent can move only at fixed units of distance.
+- Related to Execution
+    - It’s a centralized execution system
+    - Execution is done using a frame based system.
+&lt;h2 id=&quot;previous-work&quot;&gt;Previous Work&lt;&#x2F;h2&gt;
+&lt;p&gt;Among the highly cited papers I found was one stuck out for the simplicity and the beauty, “A Distributed and Optimal Motion Planning Approach for Multiple Mobile Robots” written by Guo and Parke, 2002 [1]. They talk about an approach of using coordination diagrams to do collision checks and then maximize the performance attribute of all the robots by varying the velocity profile of the robots. This approach is quite straightforward but in the scenario I tried it in there were quite a lot of times the robots ended up in deadlock as it was not changing the path of the robots.&lt;&#x2F;p&gt;
+&lt;br&gt;
+    &lt;div style=&quot;text-align: center;&quot;&gt;
+        &lt;figure&gt;
+            &lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;Multirobot - Parker(1).png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+            &lt;figcaption&gt;Coordination diagram for three robots. &lt;&#x2F;figcaption&gt;
+        &lt;&#x2F;figure&gt;
+    &lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;p&gt;&lt;b&gt;Going into more detail&lt;&#x2F;b&gt; we can define the solution, where each agent R&lt;sup&gt;i&lt;&#x2F;sup&gt;
+charts a path
+$$\tau:[0,1] \xrightarrow{} R_{s,free}^i $$
+Coordination diagram is used to optimize the velocity of each agent,
+$$ X = [0,1]^m $$
+coordination diagram for &lt;i&gt;m&lt;&#x2F;i&gt; robots. When agent is at 0 its considered to be at its starting position and when it reaches 1, it has reached the goal. The objective can be then defined to reach to
+$$ h(0,1) \xrightarrow{} X_{free} $$
+where $$ X_{free}= X - X_{obs} $$
+Based on the above explanation we can define global performance index to be:
+$$
+\tau = \beta_1\times max(T_1,T_2,...Tm) + \beta_2\times \sum_{i=1}^m T_{idleTime,i} $$
+where, T&lt;sub&gt;i&lt;&#x2F;sub&gt; denotes time spent by each of the m agents to reach the goal, I&lt;sub&gt;idleTime,i&lt;&#x2F;sub&gt; denotes idle time for the robots and 	β&lt;sub&gt;1&lt;&#x2F;sub&gt;, β&lt;sub&gt;2&lt;&#x2F;sub&gt; are the weights.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;br&gt;
+    &lt;div style=&quot;text-align: center;&quot;&gt;
+        &lt;figure class=&quot;zoom-without-container&quot; style=&quot;max-width: auto;&quot;&gt;
+            &lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;combined.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+            &lt;figcaption&gt;Simulation Results of Nomad 200 Robot&lt;&#x2F;figcaption&gt;
+        &lt;&#x2F;figure&gt;
+    &lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;!-- &lt;br&gt;
+    &lt;div style=&quot;text-align: center;&quot;&gt;
+        &lt;figure class=&quot;zoom-without-container&quot; style=&quot;max-width: 1000px;&quot;&gt;
+        &lt;div class=&quot;row&quot; style=&quot;flex: min-content&quot;&gt;
+            &lt;div class=&quot;column&quot;  style=&quot;flex: min-content; padding-right: 0&quot;&gt;
+                    &lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;path.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+                    &lt;figcaption&gt;Path Planning of Robots&lt;&#x2F;figcaption&gt;
+            &lt;&#x2F;div&gt;
+            &lt;div class=&quot;column&quot; style=&quot;flex: min-content&quot;&gt;
+                    &lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;velocity.png&quot; style=&quot;width: 107%; padding-right: 15px&quot;&gt;&lt;&#x2F;img&gt;
+                    &lt;figcaption&gt;Velocity Profile of Robots&lt;&#x2F;figcaption&gt;
+            &lt;&#x2F;div&gt;
+        &lt;&#x2F;div&gt;
+        &lt;&#x2F;figure&gt;
+    &lt;&#x2F;div&gt;
+&lt;br&gt; --&gt;
+&lt;p&gt;To solve this problem one use D&lt;sup&gt;*&lt;&#x2F;sup&gt; velocity planning, where the cost function would something like:
+$$
+f_v = \eta + \alpha_1d+\alpha_2t_{idleTime} + \alpha_3p
+$$
+where η is some large value tending to ∞, t&lt;sub&gt;idleTime&lt;&#x2F;sub&gt; is the total idle time for all the m agents, d is euclidean distance from current position to the goal point, p is the penalty incurred when the agent has to stop and let other agent pass.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;private-obsctacle-planning&quot;&gt;Private Obsctacle Planning&lt;&#x2F;h2&gt;
+&lt;p&gt;In this method instead of trying to manipulate the velocity of the agents such that they don&#x27;t collide, we try to &lt;em&gt;change their paths&lt;&#x2F;em&gt;. First each agent plans its path towards their goal locations independent of other robots. Then collision detection and interchange detection is done for each pair of robots. &lt;i&gt;Collision detection&lt;&#x2F;i&gt; can be defined as when R&lt;sub&gt;1&lt;&#x2F;sub&gt; is moving from (x&lt;sub&gt;1&lt;&#x2F;sub&gt;,y&lt;sub&gt;1&lt;&#x2F;sub&gt;) to a common location (x&lt;sub&gt;c&lt;&#x2F;sub&gt;,y&lt;sub&gt;c&lt;&#x2F;sub&gt;) while R&lt;sub&gt;2&lt;&#x2F;sub&gt; is also moving from (x&lt;sub&gt;2&lt;&#x2F;sub&gt;,y&lt;sub&gt;2&lt;&#x2F;sub&gt;) to the common location then its defined as collision. &lt;i&gt;Interchange detection&lt;&#x2F;i&gt; is the case when R&lt;sub&gt;1&lt;&#x2F;sub&gt; is going (x&lt;sub&gt;1&lt;&#x2F;sub&gt;,y&lt;sub&gt;1&lt;&#x2F;sub&gt;) → (x&lt;sub&gt;2&lt;&#x2F;sub&gt;,y&lt;sub&gt;2&lt;&#x2F;sub&gt;), but R&lt;sub&gt;2&lt;&#x2F;sub&gt;
+is also going (x&lt;sub&gt;2&lt;&#x2F;sub&gt;,y&lt;sub&gt;2&lt;&#x2F;sub&gt;) → (x&lt;sub&gt;1&lt;&#x2F;sub&gt;,y&lt;sub&gt;1&lt;&#x2F;sub&gt;) even though they aren&#x27;t at the same position at a singular point but this will also lead to a collision. This can also be thought of as a subset of the &lt;i&gt;Collision detection&lt;&#x2F;i&gt; where they collide at (x&lt;sub&gt;1.5&lt;&#x2F;sub&gt;,y&lt;sub&gt;1.5&lt;&#x2F;sub&gt;) considering R&lt;sub&gt;1&lt;&#x2F;sub&gt; R&lt;sub&gt;2&lt;&#x2F;sub&gt; are moving at constant speed. But as our assumption was that we have a discrete space we cant define x&lt;sub&gt;1.5&lt;&#x2F;sub&gt; hence the need to define &lt;i&gt;Interchange detection&lt;&#x2F;i&gt;.
+&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+&lt;figure class=&quot;zoom-without-container&quot; style=&quot;max-width: auto;&quot;&gt;
+&lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;before_After.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+&lt;figcaption&gt;Before and After Collision Avoider&lt;&#x2F;figcaption&gt;
+&lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;
+Once collisions are detected in accordance to priority order between different agents R&lt;sub&gt;1&lt;&#x2F;sub&gt;,...,R&lt;sub&gt;m&lt;&#x2F;sub&gt; we need to define &lt;i&gt;private obstacles&lt;&#x2F;i&gt; &amp;omega;&lt;sub&gt;i&lt;&#x2F;sub&gt; which is are obstacles, local and private to R&lt;sub&gt;i&lt;&#x2F;sub&gt; agent. &amp;omega;&lt;sub&gt;i&lt;&#x2F;sub&gt; depends on the priority order and collisions taking place between each agent R&lt;sub&gt;i&lt;&#x2F;sub&gt;.
+&lt;br&gt;
+    &lt;div style=&quot;text-align: center;&quot;&gt;
+        &lt;figure class=&quot;zoom-without-container&quot; style=&quot;max-width: auto;&quot;&gt;
+            &lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;time.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+            &lt;figcaption&gt;Time Taken for Planning&lt;&#x2F;figcaption&gt;
+        &lt;&#x2F;figure&gt;
+    &lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;p&gt;
+The time complexity of this problem is O(rn&lt;sup&gt;3&lt;&#x2F;sup&gt;), r is number of time slices, $n$ is number of edges in the system. From this we can observe it is faster method than &lt;i&gt;Coupled Path Planing&lt;&#x2F;i&gt; as it&#x27;s reducing a high dimensional problem into one with much lower dimensional space. The only disadvantage with this method is that it doesn&#x27;t consider the possibility of reducing speed or stopping agents at various time instants, hence the solution found might not be the most optimum one.
+&lt;h2 id=&quot;future-work&quot;&gt;Future Work&lt;&#x2F;h2&gt;
+&lt;p&gt;To further optimize the algorithm one can use randomize search technique (hill climbing) to evaluate the best possible priority order for a set of agents. Going into detail how one can do this is by first starting off with initial priority order scheme selected in such a way that the agent with the longest path is given higher priority, one with the shortest path is given the least priority. Then priority order is exchanged between two agents in the scheme. If the new scheme results in a solution with shorter overall path of the agents than the best one found so far, it continues with this new order.
+Since hill-climbing has local min-mima problem, algorithm performs random restarts with different initial
+orders of the agents to minimize this issue to the least this thus defines, another cycle of trial. Like this we will have &lt;i&gt;maxCycles&lt;&#x2F;i&gt; denoting how many of these cycles it need to perform before selecting the best solution between them. We also define &lt;i&gt;maxJumps&lt;&#x2F;i&gt; to limit the max time spent on each cycle.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;up-next&quot;&gt;Up Next&lt;&#x2F;h2&gt;
+&lt;p&gt;In future I want to talk about how the algorithum is exactly working and try to quantize the results with different style and sized arena. Once the project is done will put all the documentation in the project section of the website.
+&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+&lt;figure&gt;
+&lt;img src=&quot;&#x2F;blog&#x2F;multi-robo&#x2F;teaser.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+&lt;figcaption&gt;Teaser Image&lt;&#x2F;figcaption&gt;
+&lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;
+&lt;p&gt;&lt;em&gt;Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use &lt;a href=&quot;https:&#x2F;&#x2F;addons.mozilla.org&#x2F;en-US&#x2F;firefox&#x2F;addon&#x2F;livemarks&#x2F;?utm_source=addons.mozilla.org&amp;amp;utm_medium=referral&amp;amp;utm_content=search&quot;&gt;Livemark&lt;&#x2F;a&gt; for this.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;span style=&quot;color:green&quot;&gt;$&lt;&#x2F;span&gt; press &lt;kbd&gt;CTRL&lt;&#x2F;kbd&gt;+&lt;kbd&gt;W&lt;&#x2F;kbd&gt; to end the session.&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;!-- Note: There must be a blank line between every two lines of the footnote difinition.  --&gt;
+&lt;p&gt;[1] Yi Guo and L. E. Parker, &quot;A distributed and optimal motion planning approach for multiple mobile robots,&quot; Proceedings 2002 IEEE International Conference on Robotics and Automation (Cat. No.02CH37292), 2002, pp. 2612-2619 vol.3, doi: 10.1109&#x2F;ROBOT.2002.1013625.&lt;&#x2F;p&gt;
+&lt;p&gt;[2] Lumelsky V.J., Harinarayan K.R. (1997) Decentralized Motion Planning for Multiple Mobile Robots: The Cocktail Party Model. In: Arkin R.C., Bekey G.A. (eds) Robot Colonies. Springer, Boston, MA. doi:  10.1007&#x2F;978-1-4757-6451-2_7&lt;&#x2F;p&gt;
+&lt;p&gt;[3] Parker L.E. (2009) Multiple Mobile Robot Teams, Path Planning and Motion Coordination in. In: Meyers R. (eds) Encyclopedia of Complexity and Systems Science. Springer, New York, NY. doi: 10.1007&#x2F;978-0-387-30440-3_344&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>Creating my own world - Ray Tracing</title>
+            <pubDate>Thu, 21 Oct 2021 07:13:50 +0000</pubDate>
+            <link>https://thelowesttype.github.io/blog/ray-tracing/</link>
+            <guid>https://thelowesttype.github.io/blog/ray-tracing/</guid>
+            <description>&lt;h2 id=&quot;overview&quot;&gt;Overview?&lt;&#x2F;h2&gt;
+&lt;p&gt;I stepped into the world or renders and ray tracing via Blender. This intrigued me to understand how this beautiful world of ray tracing works. So here is my first attempt at it :)&lt;&#x2F;p&gt;
+&lt;p&gt;Here is a scene rendered by the engine&lt;&#x2F;p&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;img_26min.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;splashOfLife&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;p&gt;We can see the depth info of the scene by looking at the normal surface of the sphere represented in psuedo-color space&lt;&#x2F;p&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;normalsL.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;splashOfLife.naked&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;p&gt;Things it can do as of now :&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Multi thread rendering: Take my word for it good sire.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;Anti-aliasing
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;aliasing.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Different levels of anti-aliasing&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;ol start=&quot;3&quot;&gt;
+&lt;li&gt;Albedo control: Albedo here refers to how much light the object reflects&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;img_albedo.gif&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Normals of the surface&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;ol start=&quot;4&quot;&gt;
+&lt;li&gt;Raytracer sampling control: Allows to make decision between time and clarity for renders.&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;samples.gif&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Comparision of renders with different sampling level&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;ol start=&quot;5&quot;&gt;
+&lt;li&gt;Accurate Lambertian diffusion method: This allows to fake a good render without having to do high sampling&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;diffusion method.gif&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Lambertian diffusion&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;ol start=&quot;6&quot;&gt;
+&lt;li&gt;Gamma correction: For accurate representation of colors for human eye.&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;gammaL.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Gamma Correction&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;ol start=&quot;7&quot;&gt;
+&lt;li&gt;Temperature Control&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;tempratureLabled.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Gamma Correction&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;ol start=&quot;8&quot;&gt;
+&lt;li&gt;Reflective Materials&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;img.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Aluminium with pure reflection &lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;img3.png&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Aluminium with brushed reflection&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;h2 id=&quot;up-next&quot;&gt;Up-Next&lt;&#x2F;h2&gt;
+&lt;p&gt;Will be implementing transparent material soon. Long way to go, strap on major!&lt;&#x2F;p&gt;
+&lt;br&gt;
+&lt;div style=&quot;display: block; margin-left: auto; margin-right: auto; width: 100%; &quot;&gt;
+    &lt;figure&gt;
+        &lt;img src=&quot;&#x2F;blog&#x2F;ray-tracing&#x2F;img.jpg&quot; class=&quot;center&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Blank canvas up ahead&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;p&gt;&lt;em&gt;Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use &lt;a href=&quot;https:&#x2F;&#x2F;addons.mozilla.org&#x2F;en-US&#x2F;firefox&#x2F;addon&#x2F;livemarks&#x2F;?utm_source=addons.mozilla.org&amp;amp;utm_medium=referral&amp;amp;utm_content=search&quot;&gt;Livemark&lt;&#x2F;a&gt; for this.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;span style=&quot;color:green&quot;&gt;$&lt;&#x2F;span&gt; press &lt;kbd&gt;CTRL&lt;&#x2F;kbd&gt;+&lt;kbd&gt;W&lt;&#x2F;kbd&gt; to end the session.&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>Advance Template Matching Using OpenCV</title>
+            <pubDate>Sat, 02 Oct 2021 03:43:08 +0000</pubDate>
+            <link>https://thelowesttype.github.io/blog/template-matcher/</link>
+            <guid>https://thelowesttype.github.io/blog/template-matcher/</guid>
+            <description>&lt;p&gt;The goal was to create a template matching algorithm that can run in sub-200ms and is position, scale, and rotation invariant. The built-in template matching function of OpenCV is robust but only if you have positional invariance requirement. It fails if the object in the live footage rotates with respect to the master image.&lt;br&gt;
+Another algorithm explored was &lt;em&gt;feature-matching&lt;&#x2F;em&gt;. This ticked all the boxes. It is positional, rotational, and scale-invariant. But the challenge here was that it depends heavily on the individual blobs of the master image.&lt;br&gt;
+As you can see in the following image:&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+&lt;figure&gt;
+&lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;fast_false.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+&lt;figcaption&gt;Feature Matching&lt;&#x2F;figcaption&gt;
+&lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+It picks up the features on the object which are too reliant on having that &lt;em&gt;exact&lt;&#x2F;em&gt; object shown to the system again. This is certainly improbable, and just having an extra scratch on the object will make the system reject it. Hence this may work in simulations but for real-life dataset, this can&#x27;t be used.&lt;br&gt;
+Hence, I end up with FFT based template matching technique. For this, I used these papers as my basis [1], [2].&lt;br&gt;
+The architecture discussed in the papers had a higher runtime so it had to be optimized. I took only the bare bones of the architecture explained in the paper and applying filters and calculations which were less intensive. Allowing the algorithm to reach the set parameter.&lt;br&gt;&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+&lt;img src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;meme1.png&quot; style=&quot;width: 40%&quot;&gt;&lt;&#x2F;img&gt;
+&lt;&#x2F;div&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;let-s-look-at-the-technique&quot;&gt;Let&#x27;s look at the technique:&lt;&#x2F;h2&gt;
+&lt;p&gt;The main tool leveraged in this method is FFT&#x27;s time shift property -&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+f_2 \lparen t \rparen = f_1 \lparen t-t_0 \rparen
+F_2 \lparen t \rparen = e^{-j\omega t_0}F_1 \lparen t \rparen
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;But instead of time shift we will use it to calculate shift in x and y axis. &lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+f_2 \lparen x,y \rparen = f_1(x-x_0,y-y_0) \newline
+F_2(\xi,\eta) = e^{-j2\pi(\xi x_0+\eta y_0)}F_1(\xi,\eta)
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Now imagine consider &lt;kbd&gt;F&lt;sub&gt;1&lt;&#x2F;sub&gt;&lt;&#x2F;kbd&gt; and &lt;kbd&gt;F&lt;sub&gt;2&lt;&#x2F;sub&gt;&lt;&#x2F;kbd&gt; to be two images. So now when we take cross-power spectrum of the two images we get,&lt;br&gt;
+$$
+\frac{F_1(\xi,\eta)F_2^*(\xi,\eta)}{|F_1(\xi,\eta)F_2(\xi,\eta)|} = e^{j2\pi(\xi x_0+\eta y_0)}
+$$
+&lt;br&gt;
+Hence we can get the change in location as a power of &lt;kbd&gt;e&lt;&#x2F;kbd&gt;. But considering our target is to first find the angle, we need to convert the image from Cartesian plane to Polar plane. But even that won&#x27;t be enough as the change in angle will be coming as a power of &lt;kbd&gt;e&lt;&#x2F;kbd&gt;. Thus, we need to take &lt;em&gt;log-polar transform&lt;&#x2F;em&gt; of the image. One more point to note is that even though we want just the rotation to be detected. But as we are going to apply this algorithm in real life it is possibile that the scale of the image also changes. This is due to distortion of lens and a number of other factors. Hence, we technically need to see the scale and rotation of the image.
+&lt;br&gt;
+Considering just rotation and translation for now,&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+f_2 \lparen x,y \rparen = f_1\lparen x \cos{\theta_0} + y \sin{\theta_0} -x_0, -x \sin{\theta_0} + y \cos{\theta_0} -y_0 \rparen \newline
+F_2\lparen x,y \rparen = e^{-j2\pi(\xi x_0+\eta y_0)}F_1 \lparen \xi \cos{\theta_0} + \eta \sin{\theta_0},  -\xi\sin{\theta_0} + \eta \cos{\theta_0}\rparen
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Taking Magnitude both sides,&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+M_2(x\xi,\eta) = M_1(\xi \cos{\theta_0} + \eta \sin{\theta_0}, -\xi\sin{\theta_0} + \eta \cos{\theta_0})
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Hence we can write it as,&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+M_1(\rho,\theta) = M_2(\rho,\theta - \theta_0)
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Hence the angle can we found. Taking into account the scaling property of Fourier Transform,&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+f_2 = f_1(ax,by)\newline
+F_2(\xi,\eta) = \frac{1}{|ab|}F_1(\xi&#x2F;a,\eta&#x2F;b)
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;So, for a rotated and scaled image we can write,&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+M_1(\rho,\theta) = M_2(\rho&#x2F;a,\theta-\theta_0)
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Taking log both sides&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+M_1(\log \rho,\theta) = M_2(\log \rho - \log a,\theta-\theta_0)
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Using,
+$$
+\xi = \log \rho \enspace \text{and} \enspace d = \log a
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;$$
+M_1(\xi,\theta) = M_2(\xi - d,\theta-\theta_0)
+$$&lt;&#x2F;p&gt;
+&lt;p&gt;Now, we can get both angle and scale by which the live image correlates to the master image. Now working off the angle value we rotate our template image and then use the OpenCV built-in template matching function working off coefficient score. This will provide us with the location of the object and then the data is sent to the Camera Setup.
+&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;Template.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Template rotated to match the angle of an object in the live feed&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;h2 id=&quot;algorithm&quot;&gt;Algorithm&lt;&#x2F;h2&gt;
+&lt;p&gt;Here, I am just giving you a brief of the whole algorithm and major steps involved in it. Readers are encouraged to read more about it by themselves through research papers.&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;flow.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Algorithm Flow&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h4 id=&quot;filter&quot;&gt;Filter&lt;&#x2F;h4&gt;
+&lt;p&gt;Due to changes in lighting for our setup, we had to add a filter to keep the exposure almost similar throughout the day.&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure style=&quot;max-width: 800px;&quot;&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo1.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Filter Application&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h4 id=&quot;apodization&quot;&gt;Apodization&lt;&#x2F;h4&gt;
+&lt;p&gt;The algorithm is basically to smooth out the border of the image to get rid of the tail noise in an image signal. Something like this,&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure style=&quot;max-width: 800px;&quot;&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo2.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Apodization Process - Live Image&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h4 id=&quot;dft-of-the-image&quot;&gt;DFT of the Image&lt;&#x2F;h4&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure style=&quot;max-width: 800px;&quot;&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo3.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;DFT&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h4 id=&quot;applying-high-pass-filter-in-polar-coordinates&quot;&gt;Applying High Pass filter in Polar Coordinates&lt;&#x2F;h4&gt;
+&lt;p&gt;The yellow region means 1.0 and the purple region means 0.0&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo4.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Filter Function&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+After applying it to the image this is what you get,
+&lt;br&gt;
+&lt;br&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure style=&quot;max-width: 800px;&quot;&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo5.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Result&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h4 id=&quot;log-polar-conversion&quot;&gt;Log-Polar Conversion&lt;&#x2F;h4&gt;
+&lt;p&gt;As mentioned in the Algorithm section instead of just Polar-Transformation we actually need log-polar transform.&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure style=&quot;max-width: 800px;&quot;&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo6.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Log-Polar Transform of DFT&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;h4 id=&quot;cross-power-spectrum-of-the-images&quot;&gt;Cross-Power Spectrum of the Images&lt;&#x2F;h4&gt;
+&lt;p&gt;You can notice a small dot almost in the centre of the image. That dot is a unit function denoting the angle and scale with which the live image has changed as compared to the template.&lt;&#x2F;p&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;
+    &lt;figure style=&quot;max-width: 650px;&quot;&gt;
+        &lt;img class=&quot;zoom-without-container&quot; src=&quot;&#x2F;blog&#x2F;template-matcher&#x2F;algo7.png&quot; style=&quot;width: 100%&quot;&gt;&lt;&#x2F;img&gt;
+        &lt;figcaption&gt;Cross Power Spectrum&lt;&#x2F;figcaption&gt;
+    &lt;&#x2F;figure&gt;
+&lt;&#x2F;div&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;&#x2F;h2&gt;
+&lt;p&gt;This is part of a bigger project I worked on. After I talk about other parts of this project, I will post the codes and explain you how to test it on your system. So stay tuned over the blog section. Once everything is explained here I will post the guide on the projects section of the website. &lt;em&gt;Also fun-fact you can subscribe to the blog using RSS! For Firefox users you can use &lt;a href=&quot;https:&#x2F;&#x2F;addons.mozilla.org&#x2F;en-US&#x2F;firefox&#x2F;addon&#x2F;livemarks&#x2F;?utm_source=addons.mozilla.org&amp;amp;utm_medium=referral&amp;amp;utm_content=search&quot;&gt;Livemark&lt;&#x2F;a&gt; for this.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;span style=&quot;color:green&quot;&gt;$&lt;&#x2F;span&gt; press &lt;kbd&gt;CTRL&lt;&#x2F;kbd&gt;+&lt;kbd&gt;W&lt;&#x2F;kbd&gt; to end the session.&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;!-- Note: There must be a blank line between every two lines of the footnote difinition.  --&gt;
+&lt;p&gt;[1] Huy Tho Ho and R. Goecke, &quot;Optical flow estimation using Fourier Mellin Transform,&quot; 2008 IEEE Conference on Computer Vision and Pattern Recognition, 2008, pp. 1-8, doi: 10.1109&#x2F;CVPR.2008.4587553.&lt;&#x2F;p&gt;
+&lt;p&gt;[2] B. S. Reddy and B. N. Chatterji, &quot;An FFT-based technique for translation, rotation, and scale-invariant image registration,&quot; in IEEE Transactions on Image Processing, vol. 5, no. 8, pp. 1266-1271, Aug. 1996, doi: 10.1109&#x2F;83.506761.&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>Quick Start</title>
+            <pubDate>Tue, 28 Sep 2021 13:40:16 +0000</pubDate>
+            <link>https://thelowesttype.github.io/projects/gimagegrabber/quick-start/</link>
+            <guid>https://thelowesttype.github.io/projects/gimagegrabber/quick-start/</guid>
+            <description>&lt;h2 id=&quot;installation&quot;&gt;Installation&lt;&#x2F;h2&gt;
+&lt;p&gt;To install gImageGrabber do as follow:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; pip install gImageGrabber
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;There are two python files &lt;em&gt;imgScrape&lt;&#x2F;em&gt; and &lt;em&gt;imgTools&lt;&#x2F;em&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;em&gt;imgScrape&lt;&#x2F;em&gt; has all the utilities needed to run the script but if you
+want to have additional control over the functions you could explore
+&lt;em&gt;imgTools&lt;&#x2F;em&gt;. &lt;em&gt;Simple&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;importing&quot;&gt;Importing&lt;&#x2F;h2&gt;
+&lt;p&gt;To import this module to your script do this :&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgScrape
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgTools
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+</description>
+        </item>
+        <item>
+            <title>Usage</title>
+            <pubDate>Mon, 27 Sep 2021 13:45:16 +0000</pubDate>
+            <link>https://thelowesttype.github.io/projects/gimagegrabber/usage/</link>
+            <guid>https://thelowesttype.github.io/projects/gimagegrabber/usage/</guid>
+            <description>&lt;h3 id=&quot;building-url&quot;&gt;Building URL&lt;&#x2F;h3&gt;
+&lt;p&gt;imgScrape.build_url(search)&lt;&#x2F;p&gt;
+&lt;p&gt;This is to compose a google search URL for your search term. To specify
+your search term use search argument of the function to build the URL.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Usage&lt;&#x2F;strong&gt; :&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgScrape
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;searchTerm &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;kamikaze eminem&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;url &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;build_url&lt;&#x2F;span&gt;&lt;span&gt;(searchTerm)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;print&lt;&#x2F;span&gt;&lt;span&gt;(url) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#FOR DEBUG PURPOSE
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;getting-source-data&quot;&gt;Getting Source Data&lt;&#x2F;h3&gt;
+&lt;p&gt;imgScrape.browser(url, test=False)&lt;&#x2F;p&gt;
+&lt;p&gt;This to start a browser windows and scroll down the webpage to let more
+pictures load.It returns a raw source code data of the webpage encoded
+in &lt;em&gt;utf-8&lt;&#x2F;em&gt; format. It takes 2 arguments url and test .&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;url is the url of the page it needs to open.&lt;&#x2F;li&gt;
+&lt;li&gt;test is to make the browser scroll down less thus taking less time
+to return the source code. This is useful when you are writing or
+debugging something in your script.&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;It uses Chrome or Firefox to work so make sure you have Google chrome or
+Firefox installed at their default directory.&lt;&#x2F;p&gt;
+&lt;p&gt;Sometimes you might need to click on &lt;strong&gt;show more images&lt;&#x2F;strong&gt; on webpage to
+load even more images&lt;&#x2F;p&gt;
+&lt;p&gt;If you cant seem to open browser make sure you are on 64-bit OS and that
+you have chrome or Firefox installed.&lt;&#x2F;p&gt;
+&lt;p&gt;If you are on 32-bit processor you need to use Firefox and you also have
+to download 32 bit driver from
+&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;mozilla&#x2F;geckodriver&#x2F;releases&quot;&gt;here&lt;&#x2F;a&gt; and replace it
+with the already present &lt;strong&gt;geckodriver.exe&lt;&#x2F;strong&gt; saved in &lt;strong&gt;driver folder&lt;&#x2F;strong&gt;
+of the gImageGrabber Module folder.&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Usage&lt;&#x2F;strong&gt; :&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgScrape
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;searchTerm &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;kamikaze eminem&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;url &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;build_url&lt;&#x2F;span&gt;&lt;span&gt;(searchTerm)
+&lt;&#x2F;span&gt;&lt;span&gt;raw_data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;browser&lt;&#x2F;span&gt;&lt;span&gt;(url)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;print&lt;&#x2F;span&gt;&lt;span&gt;(raw_data) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#FOR DEBUG PURPOSE
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;extracting-links&quot;&gt;Extracting Links&lt;&#x2F;h3&gt;
+&lt;p&gt;imgScrape.imageLink(html)&lt;&#x2F;p&gt;
+&lt;p&gt;This extracts the original link of the images from the html(source code)
+provided. html is the source code of the google image search page. It
+returns a dict with format &lt;strong&gt;[ link : file extension ]&lt;&#x2F;strong&gt; . If you want
+it in &lt;strong&gt;[file extension : link]&lt;&#x2F;strong&gt; you can use imgTools.invDict()`
+function from imgTools&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;strong&gt;Usage&lt;&#x2F;strong&gt; :&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgScrape
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgTools
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;searchTerm &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;kamikaze eminem&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;debug &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;False
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;url &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;build_url&lt;&#x2F;span&gt;&lt;span&gt;(searchTerm)
+&lt;&#x2F;span&gt;&lt;span&gt;raw_data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;browser&lt;&#x2F;span&gt;&lt;span&gt;(url,debug)
+&lt;&#x2F;span&gt;&lt;span&gt;links &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;imageLink&lt;&#x2F;span&gt;&lt;span&gt;(raw_data)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;print&lt;&#x2F;span&gt;&lt;span&gt;(links) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#FOR DEBUG PURPOSE
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;print&lt;&#x2F;span&gt;&lt;span&gt;(imgTools,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;invDict&lt;&#x2F;span&gt;&lt;span&gt;(links)) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#FOR DEBUG PURPOSE
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;saving-images&quot;&gt;Saving Images&lt;&#x2F;h3&gt;
+&lt;p&gt;imgScrape.saveImages(data, name, onlyType)`&lt;&#x2F;p&gt;
+&lt;p&gt;This saves all the images given to it in a list of format &lt;strong&gt;[link: file
+extension]&lt;&#x2F;strong&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;It takes 3 arguments:&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;data This is to provide dictionary containing links to images in
+format &lt;strong&gt;[link: file extension]&lt;&#x2F;strong&gt;.&lt;&#x2F;li&gt;
+&lt;li&gt;name This is to provide the name for the folder under which images
+will be saved.&lt;&#x2F;li&gt;
+&lt;li&gt;onlyType If you want only a particular file extension then use this
+mention that. If not, then pass it a empty string or just don&#x27;t use
+that argument.&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;The format in which it saves images is&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#282a36;color:#f8f8f2;&quot;&gt;&lt;code&gt;&lt;span&gt;Root folder
+&lt;&#x2F;span&gt;&lt;span&gt;|-- Search Term
+&lt;&#x2F;span&gt;&lt;span&gt;    |-- file extension(eg &amp;#39;jpg&amp;#39;)
+&lt;&#x2F;span&gt;&lt;span&gt;        |-- 000001.jpg
+&lt;&#x2F;span&gt;&lt;span&gt;        |-- 000002.jpg
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;strong&gt;Usage&lt;&#x2F;strong&gt; :&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;gimagegrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgScrape
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;searchTerm &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;Kamikaze&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;extension &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;#39;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;#save all types of images
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;url &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;build_url&lt;&#x2F;span&gt;&lt;span&gt;(searchTerm)
+&lt;&#x2F;span&gt;&lt;span&gt;raw_data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;browser&lt;&#x2F;span&gt;&lt;span&gt;(url)
+&lt;&#x2F;span&gt;&lt;span&gt;links &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;imageLink&lt;&#x2F;span&gt;&lt;span&gt;(raw_data)
+&lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;saveImages&lt;&#x2F;span&gt;&lt;span&gt;(links,searchTerm,extension)
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;example-code&quot;&gt;Example Code&lt;&#x2F;h2&gt;
+&lt;p&gt;This code is included in the package as simpleScript.py.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;from &lt;&#x2F;span&gt;&lt;span&gt;imggrabber &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;imgScrape
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# Search term
+&lt;&#x2F;span&gt;&lt;span&gt;search &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;#39;kamikaze eminem&amp;#39;
+&lt;&#x2F;span&gt;&lt;span&gt;fType &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;#39;&amp;#39;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# if you want all the files them make it empty string
+&lt;&#x2F;span&gt;&lt;span&gt;debug &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;False
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;html &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;browser&lt;&#x2F;span&gt;&lt;span&gt;(imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;build_url&lt;&#x2F;span&gt;&lt;span&gt;(search), debug)
+&lt;&#x2F;span&gt;&lt;span&gt;data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;imageLink&lt;&#x2F;span&gt;&lt;span&gt;(html)
+&lt;&#x2F;span&gt;&lt;span&gt;imgScrape&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;saveImages&lt;&#x2F;span&gt;&lt;span&gt;(data, search, fType)
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+</description>
+        </item>
+        <item>
+            <title>Introduction</title>
+            <pubDate>Mon, 27 Sep 2021 13:38:16 +0000</pubDate>
+            <link>https://thelowesttype.github.io/projects/gimagegrabber/intro/</link>
+            <guid>https://thelowesttype.github.io/projects/gimagegrabber/intro/</guid>
+            <description>&lt;h2 id=&quot;quick-start&quot;&gt;Quick Start&lt;&#x2F;h2&gt;
+&lt;p&gt;It provides tools to grab images from a google search by extracting the
+links of the images and downloading original images.&lt;&#x2F;p&gt;
+&lt;p&gt;This module is written for windows 10 or Ubuntu 16.0 and above on 64-bit processor. It uses
+Selenium to open browser so as to scroll down to get more images than
+possible otherwise. Thus it &lt;strong&gt;needs a browser&lt;&#x2F;strong&gt; to work correctly. This
+is on &lt;em&gt;default&lt;&#x2F;em&gt; set to use &lt;em&gt;chrome browser&lt;&#x2F;em&gt; in case of inability to open
+it Firefox will be used. The package comes with chromedriver and
+geckodriver with it.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;going-to-the-next-section&quot;&gt;Going to the next section&lt;&#x2F;h2&gt;
+&lt;p&gt;Click &lt;a href=&quot;..&#x2F;..&#x2F;template-project&#x2F;quick-start&#x2F;&quot;&gt;here&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>hello homo.sapien</title>
+            <pubDate>Mon, 27 Sep 2021 11:55:27 +0000</pubDate>
+            <link>https://thelowesttype.github.io/blog/hello/</link>
+            <guid>https://thelowesttype.github.io/blog/hello/</guid>
+            <description>&lt;blockquote&gt;
+&lt;p&gt;The Master created humans first as &lt;strong&gt;The Lowest Type&lt;&#x2F;strong&gt;, most easily formed. Gradually, he replaced them by robots, the next higher step, and finally he created me, to take the place of the last humans.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;p&gt;&lt;em&gt;‒ Isaac Asimov, &#x27;I, Robot&#x27;.&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;Not trying to scare poeple with the thought of us seeing robots taking over &lt;del&gt;cause they already have&lt;&#x2F;del&gt;. If you ask me robots are nothing but an evolved homosapien. That being said now that this website is ready &lt;em&gt;phew&lt;&#x2F;em&gt;.
+&lt;br&gt; Let the fun beg.in. My plan is to use this to write documentation and if time permits a step-by-step guide. I want to write around 2 articles + projects doc every month. Will use blog area to talk about things which aren&#x27;t technical or I just want to talk about some random thing.
+&lt;br&gt;&lt;br&gt;
+To just show off the ability of site let&#x27;s try few things shall we?&lt;br&gt;&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;This is how code will render as&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#6272a4;&quot;&gt;# This is a comment, and is ignored by the compiler
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ff79c6;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#8be9fd;&quot;&gt;moveRobo&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ff79c6;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8be9fd;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        moveit_commander&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;roscpp_initialize&lt;&#x2F;span&gt;&lt;span&gt;(sys&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt;argv)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span&gt;__name__ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;== &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;#39;__main__&amp;#39;&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    rospy&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;init_node&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f1fa8c;&quot;&gt;&amp;quot;move_robo&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#ffb86c;&quot;&gt;anonymous&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bd93f9;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Looking good! &lt;img src=&quot;https:&#x2F;&#x2F;emojis.slackmojis.com&#x2F;emojis&#x2F;images&#x2F;1520808873&#x2F;3643&#x2F;cool-doge.gif?1520808873&quot; width=&quot;30&quot; style=&quot;padding-bottom: 20px;&quot;&#x2F;&gt;
+Let&#x27;s try inline code &lt;code&gt;cout &amp;lt;&amp;lt; &quot;Stop doing fucking Hello, World!&quot;;&lt;&#x2F;code&gt;. &lt;del&gt;Oops&lt;&#x2F;del&gt; I got carried away&lt;&#x2F;p&gt;
+&lt;p&gt;How does bash look like you might ask?&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#282a36;color:#f8f8f2;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#50fa7b;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo rm &#x2F;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ff79c6;&quot;&gt;*
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;What about headings? &lt;br&gt;&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;h1 id=&quot;h1&quot;&gt;H1&lt;&#x2F;h1&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;h2 id=&quot;h2&quot;&gt;H2&lt;&#x2F;h2&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;h3 id=&quot;h3&quot;&gt;H3&lt;&#x2F;h3&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;h4 id=&quot;h4&quot;&gt;H4&lt;&#x2F;h4&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;h5 id=&quot;h5&quot;&gt;H5&lt;&#x2F;h5&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;h6 id=&quot;h6&quot;&gt;H6&lt;&#x2F;h6&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;Let&#x27;s see some Katex while we are at it
+$$
+\varphi = 1+\frac{1} {1+\frac{1} {1+\frac{1} {1+\cdots} } }
+$$&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;Images?&lt;br&gt;&lt;&#x2F;p&gt;
+ &lt;div style=&quot;text-align: center;&quot;&gt;
+ &lt;img src=&quot;&#x2F;blog&#x2F;hello&#x2F;me2.png&quot; style=&quot;width: 75%&quot;&gt;&lt;&#x2F;img&gt;
+ &lt;&#x2F;div&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;Oh don&#x27;t forget to press the terminal button on the top for some &lt;strong&gt;nice&lt;&#x2F;strong&gt; suprise. &lt;br&gt; &lt;br&gt;
+&lt;span style=&quot;color:green&quot;&gt;$&lt;&#x2F;span&gt; press &lt;kbd&gt;ALT&lt;&#x2F;kbd&gt;+&lt;kbd&gt;F4&lt;&#x2F;kbd&gt; to end the session.&lt;&#x2F;p&gt;
+</description>
+        </item>
+        <item>
+            <title>About me!</title>
+            <pubDate>Sun, 26 Sep 2021 11:30:24 +0000</pubDate>
+            <link>https://thelowesttype.github.io/aboutme/</link>
+            <guid>https://thelowesttype.github.io/aboutme/</guid>
+            <description>&lt;p&gt;My academic interests are in &lt;strong&gt;Robotics, Controls, Computer Vision and Machine Learning.&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;em&gt;My story you ask?&lt;&#x2F;em&gt;
+&lt;br&gt;
+Since early days of my schooling I have been &lt;del&gt;breaking&lt;&#x2F;del&gt; making things.&lt;br&gt;
+Creating water level indicator back in 6&lt;sup&gt;th&lt;&#x2F;sup&gt; grade started my roller coaster journey in field of electronics by introducing me to a transistor and by and large to this beatiful domain where &lt;del&gt;mostly&lt;&#x2F;del&gt; everyting is possible. And then I quickly realized, this is what I want to keep on doing in my life.
+&lt;br&gt; &lt;br&gt; In my free time, I also dabble with swimming, long cycling journeys, little bit of design, animation and &lt;a href=&quot;https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UC7BLVR5OvHzaD7utOEuk94g&quot; target=&quot;_blank&quot;&gt;SFX projects&lt;&#x2F;a&gt;. I also love percussion instruments like tabla, drums.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;projects-i-am-working-on&quot;&gt;&lt;img src=&quot;https:&#x2F;&#x2F;emojis.slackmojis.com&#x2F;emojis&#x2F;images&#x2F;1617817329&#x2F;28102&#x2F;music_robot.gif?1617817329&quot; style=&quot;padding-bottom: 19px;&quot; width=&quot;40&quot;&#x2F;&gt; Projects I am working on :&lt;&#x2F;h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Autonomous Car @ Wirin Labs&lt;&#x2F;li&gt;
+&lt;li&gt;Quadruped Robot&lt;&#x2F;li&gt;
+&lt;li&gt;Multi Robot Navigation&lt;&#x2F;li&gt;
+&lt;li&gt;Digital Synth
+&lt;br&gt;&lt;br&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</description>
+        </item>
+        <item>
+            <title>Saksham Sharma</title>
+            <pubDate>Thu, 01 Apr 2021 08:50:45 +0000</pubDate>
+            <link>https://thelowesttype.github.io/authors/saksham/</link>
+            <guid>https://thelowesttype.github.io/authors/saksham/</guid>
+            <description>&lt;p&gt;&lt;span style=&quot;color: #41FF00&quot;&gt;$&lt;&#x2F;span&gt; Hey there! nice to see you in these woods. This is my blog, crazy right &lt;img src=&quot;https:&#x2F;&#x2F;emojis.slackmojis.com&#x2F;emojis&#x2F;images&#x2F;1526876487&#x2F;3966&#x2F;poggers.png?1526876487&quot; style=&quot;padding-bottom: 10px;&quot; width=25px&gt;
+&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;codeck313&quot;&gt;@codeck313&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+</description>
+        </item>
+    </channel>
+</rss>
