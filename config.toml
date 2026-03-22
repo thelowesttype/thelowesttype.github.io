@@ -40,11 +40,10 @@ include_description = false
 include_content = true
 
 [markdown]
-# Whether to do syntax highlighting.
-# Theme can be customised by setting the `highlight_theme`
-# variable to a theme supported by Zola
+# Zola 0.16+ syntax for syntax highlighting
+[markdown.highlighting]
 highlight_code = true
-highlight_theme = "dracula"
+theme = "dracula"
 
 [extra]
 # Put all your custom variables here
@@ -142,17 +141,12 @@ pre = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0
 url = "https://linkedin.com/in/saksham-sharma-98678ab7"
 weight = 20
 
-[[extra.menu.social]]
-name = "Instagram"
-pre = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg>'
-url = "https://instagram.com/c0deck313"
-weight = 20
 
 
 
 # Footer contents
 [extra.footer]
-info = 'Follow me on <a href="https://github.com/codeck313" target="_blank">Github</a>, <a href="https://linkedin.com/in/saksham-sharma-98678ab7" target="_blank">Linkedin</a> and <a href="https://instagram.com/c0deck313" target="_blank">Instagram</a>'
+info = 'Follow me on <a href="https://github.com/codeck313" target="_blank">Github</a> and <a href="https://linkedin.com/in/saksham-sharma-98678ab7" target="_blank">Linkedin</a>'
 
 [[extra.footer.nav]]
 name = "Privacy"

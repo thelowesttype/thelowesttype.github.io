@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wrap container" role="document">
+  <div class="content">
+    <section class="section container-fluid mt-n3 pb-3">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <h1>Publications</h1>
+          {% for page in section.pages %}
+          <article style="margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px solid rgba(255,255,255,0.1);">
+            <h3><a href="{{ page.permalink }}">{{ page.title }}</a></h3>
+            {% if page.extra.authors %}<p style="font-size:0.875rem; opacity:0.7;">{{ page.extra.authors }}</p>{% endif %}
+            {% if page.extra.venue %}<p style="font-size:0.875rem; font-style:italic;">{{ page.extra.venue }}{% if page.extra.year %} · {{ page.extra.year }}{% endif %}</p>{% endif %}
+            {% if page.extra.tldr %}<p style="font-size:0.875rem;">{{ page.extra.tldr }}</p>{% endif %}
+            {% if page.extra.links %}
+            <p>
+              {% for link in page.extra.links %}
+              <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" style="margin-right:0.5rem; color:#41FF00;">[{{ link.label }}]</a>
+              {% endfor %}
+            </p>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock content %}

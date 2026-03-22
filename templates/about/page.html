@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block seo %}
+  {% set_global current_section = 'aboutme' %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ get_url(path='/homepage.css', trailing_slash=false) | safe }}">
+{% endblock seo %}
+
+{% block body %}
+  {% set page_class = "aboutme-page" %}
+{% endblock body %}
+
+{% block header %}
+  {{ macros_header::header(current_section="aboutme") }}
+{% endblock header %}
+
+{% block content %}
+
+{# ── Stage text data for JS word-diff engine ─────────────────────────────── #}
+<script>
+window.ABOUT_STAGES   = [
+  {% for stage in page.extra.stages %}
+  { text: {{ stage.text | json_encode | safe }}, style: {{ stage.style | default(value="") | json_encode | safe }} },
+  {% endfor %}
+];
+window.ABOUT_VIDEO_AT = 101;  {# video disabled — set above slider range #}
+</script>
+
+<div class="about-fullpage">
+
+  {# ── Content column ──────────────────────────────────────────────────────── #}
+  <div class="about-content">
+
+    <p class="about-pre-heading">// about me</p>
+    <h1 class="about-main-heading">Saksham <span class="accent">Sharma</span></h1>
+    <p class="about-sub-heading">Building Robots I was promised in childhood</p>
+
+    <div class="about-paragraph-zone">
+      <div class="about-text-area" id="aboutTextArea"></div>
+    </div>
+  </div>
+
+{# ── Popup images ────────────────────────────────────────────────────────── #}
+  {# Configured in content/aboutme/index.md via [[extra.popups]]               #}
+  {# Fields: src, show, hide (opt), top/right/bottom/left (CSS values), width, move #}
+  {% for popup in page.extra.popups %}
+  <div class="about-popup{% if popup.fullscreen %} popup-fullscreen{% elif popup.animate %} popup-{{ popup.animate }}{% elif popup.move %} popup-move{% endif %}{% if popup.bounce and not popup.fullscreen and not popup.animate %} popup-bounce{% endif %}{% if popup.jiggle %} popup-jiggle{% endif %}"
+       data-show="{{ popup.show }}"
+       data-hide="{{ popup.hide | default(value=101) }}"
+       {% if popup.flicker %}data-flicker="true"{% endif %}
+       {% if not popup.fullscreen %}style="{% if popup.top %}top:{{ popup.top }};{% endif %}{% if popup.right %}right:{{ popup.right }};{% endif %}{% if popup.bottom %}bottom:{{ popup.bottom }};{% endif %}{% if popup.left %}left:{{ popup.left }};{% endif %}"{% endif %}>
+    <img src="/{{ popup.src }}"
+         {% if not popup.fullscreen %}style="width: clamp(100px, 32vw, {{ popup.width | default(value=320) }}px)"{% endif %}
+         alt="">
+  </div>
+  {% endfor %}
+
+  {# ── CV download button — fades in at high slider values ─────────────────── #}
+  <a id="about-cv-btn" href="/aboutme/Saksham_Sharma_CV.pdf" target="_blank" rel="noopener">
+    Download CV
+  </a>
+
+  {# ── Attention flicker overlay — CSS animation runs while flicker popups visible #}
+  <div id="about-flash"></div>
+
+  {# ── Slider bar ───────────────────────────────────────────────────────────── #}
+  <div class="about-slider-bar">
+    <span class="slider-label slider-less">Less Hard Sell</span>
+    <input type="range" id="aboutSlider" min="0" max="100" value="0" step="1">
+    <span class="slider-label slider-more">More Hard Sell</span>
+  </div>
+
+</div>
+
+<script src="{{ get_url(path='/js/about-slider.js', trailing_slash=false) }}"></script>
+{% endblock content %}
+
+{% block footer %}{% endblock footer %}

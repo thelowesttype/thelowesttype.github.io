@@ -1,14 +1,21 @@
 +++
 title = "The Lowest Type"
 
-
-# The homepage contents
 [extra]
+# ── Hero section text ──────────────────────────────────────────────────────────
+# Edit these two fields to update the homepage hero without touching templates.
+hero_tagline = "Making rocks and sand pay attention"
+hero_bio = '''
+I'm <strong>Saksham</strong>. Currently I spend my days at CMU's AIRLab watching highly educated metal boxes have existential breakdowns in the mud.
+When I’m not acting as a couples counselor for sensors and actuators, I am either swimming, cycling, or making some animations!
+<p>
+<p>
+Before adopting my current brand of chaos at CMU, I spent my time sharing a sandbox with some delightfully brilliant (and unhinged) humans at Skild.ai and ARTPARK (IISc)
+'''
+# ── Legacy fields (kept for compatibility) ─────────────────────────────────────
 lead = 'This is a journal for my ideas, plans and the projects I make in my free time.'
 url = "/aboutme"
 url_button = "About Me"
-# repo_version = "GitHub v0.1.0"
-# repo_license = "Open-source MIT License."
 repo_url = "https://github.com/codeck313/codeck313"
 
 [[extra.list]]

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block seo %}
+  {{ super() }}
+  {% if config.title %}
+    {% set title = config.title %}
+  {% else %}
+    {% set title = "" %}
+  {% endif %}
+  {% if config.extra.title_addition and title %}
+    {% set title_addition = title_separator ~ config.extra.title_addition %}
+  {% elif config.extra.title_addition %}
+    {% set title_addition = config.extra.title_addition %}
+  {% else %}
+    {% set title_addition = "" %}
+  {% endif %}
+  {% set description = config.description %}
+  {{ macros_head::seo(title=title, title_addition=title_addition, description=description, is_home=true) }}
+  <link rel="stylesheet" href="{{ get_url(path="/homepage.css", trailing_slash=false) | safe }}">
+{% endblock seo %}
+
+{% block content %}
+<div class="homepage-wrap">
+
+  {# ══ HERO ════════════════════════════════════════════════════════════════ #}
+  <section class="hero-section">
+    <div class="hero-inner">
+
+      <div class="hero-photo-wrapper" data-tooltip="click to watch a neural net slowly forget what I look like">
+        <img id="heroPhoto"
+             src="/img/viz/input.png"
+             alt="{{ config.extra.author }}" />
+      </div>
+
+      <div class="hero-bio">
+        <h1>
+          {% set name_parts = config.extra.author | split(pat=" ") %}
+          <span style="color:#fff;">{{ name_parts | first }}</span>
+          <span class="accent">{{ name_parts | last }}</span>
+        </h1>
+
+        <p class="hero-tagline">
+          {{ section.extra.hero_tagline | default(value="Robotics · Controls · Computer Vision · Making things") }}
+        </p>
+
+        <div class="hero-bio-text">
+          {{ section.extra.hero_bio | default(value="") | safe }}
+        </div>
+
+        <div class="hero-socials">
+          <a id="emailReveal" class="email-scramble" href="#"
+             data-u="{{ config.extra.email | split(pat='@') | first }}"
+             data-d="{{ config.extra.email | split(pat='@') | last }}"
+             title="Click to reveal email">
+            <span class="email-display">xkWpZmR@qFvLnBt</span>
+          </a>
+          <a href="{{ config.extra.github }}" target="_blank" rel="noopener noreferrer">GitHub</a>
+          {% if config.extra.youtube %}
+          <a href="{{ config.extra.youtube }}" target="_blank" rel="noopener noreferrer">YouTube</a>
+          {% endif %}
+          <a href="/aboutme/">About me →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ══ AFFILIATIONS ════════════════════════════════════════════════════════ #}
+  {% set aff = get_section(path="affiliations/_index.md") %}
+  {% if aff.extra.places %}
+  <section id="affiliations" class="homepage-section aff-section">
+    <div class="section-inner">
+      <div class="aff-strip">
+        {% for place in aff.extra.places %}
+        <a class="aff-item"
+           href="{{ place.url | default(value='#') }}"
+           {% if place.url and place.url != "" %}target="_blank" rel="noopener noreferrer"{% endif %}
+           title="{{ place.role }} · {{ place.period }}">
+          <img class="aff-logo" src="{{ place.logo }}" alt="{{ place.name }}" />
+          <span class="aff-name">{{ place.name }}</span>
+          <span class="aff-period">{{ place.period }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ══ NEWS ════════════════════════════════════════════════════════════════ #}
+  {% set news = get_section(path="news/_index.md") %}
+  {% if news.extra.items %}
+  <section id="news" class="homepage-section">
+    <div class="section-inner">
+      <h2 class="section-heading">Recent News</h2>
+      <ul class="news-list">
+        {% for item in news.extra.items %}
+        <li class="news-item">
+          <span class="news-date">{{ item.date }}</span>
+          <span class="news-text">{{ item.text | safe }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ══ PUBLICATIONS ════════════════════════════════════════════════════════ #}
+  {% set pub_section = get_section(path="publications/_index.md") %}
+  {% set featured_pubs = [] %}
+  {% for page in pub_section.pages %}
+    {% if page.extra.featured %}
+      {% set_global featured_pubs = featured_pubs | concat(with=page) %}
+    {% endif %}
+  {% endfor %}
+  {% if featured_pubs %}
+  <section id="publications" class="homepage-section">
+    <div class="section-inner">
+      <h2 class="section-heading">Publications</h2>
+
+      <div class="filter-group" data-target=".pub-list">
+        <button class="filter-btn active" data-category="all">All</button>
+        {% if pub_section.extra.filter_categories %}
+          {% for cat in pub_section.extra.filter_categories %}
+          <button class="filter-btn" data-category="{{ cat | lower }}">{{ cat }}</button>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="pub-list">
+        {% for page in featured_pubs %}
+        <div class="pub-card" data-categories="{{ page.extra.categories | join(sep=',') }}">
+          <div class="pub-image">
+            {% if page.extra.image and page.extra.image != "" %}
+              <img src="{{ page.extra.image }}" alt="{{ page.title }}" loading="lazy" />
+            {% else %}
+              <div class="pub-image-placeholder">[ no image ]</div>
+            {% endif %}
+          </div>
+          <div class="pub-content">
+            {% if page.extra.categories %}
+            <div class="pub-badges">
+              {% for cat in page.extra.categories %}
+              <span class="pub-badge">{{ cat }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <h3><a href="{{ page.permalink }}">{{ page.title }}</a></h3>
+            <p class="pub-venue">{{ page.extra.venue }}{% if page.extra.year %} &mdash; {{ page.extra.year }}{% endif %}</p>
+            {% if page.extra.tldr %}
+            <p class="pub-tldr">{{ page.extra.tldr }}</p>
+            {% endif %}
+            {% if page.extra.authors %}
+            <p class="pub-authors">{{ page.extra.authors }}</p>
+            {% endif %}
+            {% if page.extra.links %}
+            <div class="pub-links">
+              {% for link in page.extra.links %}
+              <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </section>
+  {% endif %}
+
+  {# ══ PROJECTS (curated) ══════════════════════════════════════════════════ #}
+  {% set projects_section = get_section(path="projects/_index.md") %}
+  {% set featured_projs = [] %}
+  {% for sub_path in projects_section.subsections %}
+    {% set proj = get_section(path=sub_path) %}
+    {% if proj.extra.featured %}
+      {% set_global featured_projs = featured_projs | concat(with=proj) %}
+    {% endif %}
+  {% endfor %}
+  {% if featured_projs %}
+  <section id="projects" class="homepage-section">
+    <div class="section-inner">
+      <h2 class="section-heading">Pet Projects</h2>
+
+      <div class="filter-group" data-target=".proj-list">
+        <button class="filter-btn active" data-category="all">All</button>
+        {% if projects_section.extra.filter_categories %}
+          {% for cat in projects_section.extra.filter_categories %}
+          <button class="filter-btn" data-category="{{ cat | lower }}">{{ cat }}</button>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="proj-list">
+        {% for proj in featured_projs %}
+        <div class="pub-card" data-categories="{{ proj.extra.categories | join(sep=',') }}">
+          <div class="pub-image">
+            {% if proj.extra.image and proj.extra.image != "" %}
+              <img src="{{ proj.extra.image }}" alt="{{ proj.title }}" loading="lazy" />
+            {% else %}
+              <div class="pub-image-placeholder">[ no image ]</div>
+            {% endif %}
+          </div>
+          <div class="pub-content">
+            {% if proj.extra.categories %}
+            <div class="pub-badges">
+              {% for cat in proj.extra.categories %}
+              <span class="pub-badge">{{ cat }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <h3><a href="{{ proj.permalink }}">{{ proj.title }}</a></h3>
+            {% if proj.extra.tldr %}
+            <p class="pub-tldr">{{ proj.extra.tldr }}</p>
+            {% endif %}
+            {% if proj.description and proj.description != "" %}
+            <p class="pub-authors">{{ proj.description | truncate(length=120) }}</p>
+            {% endif %}
+            <div class="pub-links">
+              <a href="{{ proj.permalink }}">view project →</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <a class="section-cta" href="/projects/">All projects →</a>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ══ BLOG ════════════════════════════════════════════════════════════════ #}
+  <section id="blog" class="homepage-section">
+    <div class="section-inner">
+      <h2 class="section-heading">Thoughts? Rants? Documentation?</h2>
+      <div class="blog-list">
+        {% set blog_section = get_section(path="blog/_index.md") %}
+        {% for page in blog_section.pages | slice(end=4) %}
+          <article class="blog-card">
+            <h3><a href="{{ page.permalink }}">{{ page.title }}</a></h3>
+            {% if page.date %}
+              <time datetime="{{ page.date }}">{{ page.date | date(format="%b %d, %Y") }}</time>
+            {% endif %}
+            {% set blurb = page.extra.lead | default(value=page.description | default(value="")) %}
+            {% if blurb and blurb != "" %}
+              <p>{{ blurb | truncate(length=140) }}</p>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+      <a class="section-cta" href="/blog/">All posts →</a>
+    </div>
+  </section>
+
+  {# ══ YOUTUBE / SFX ═══════════════════════════════════════════════════════ #}
+  {% if config.extra.youtube %}
+  <section id="sfx" class="homepage-section youtube-section">
+    <div class="section-inner">
+      <h2 class="section-heading">SFX / Animation</h2>
+      <p>
+        Another hobby I dabble with — animation, SFX, and a little bit of design.<br>
+        <em>If the content deserves a dub you shall leave a sub.</em>
+      </p>
+      <a class="section-cta" href="{{ config.extra.youtube }}" target="_blank" rel="noopener noreferrer">
+        Watch on YouTube →
+      </a>
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+
+<script src="{{ get_url(path="/js/theme-patch.js", trailing_slash=false) | safe }}"></script>
+<script src="{{ get_url(path="/js/hero.js", trailing_slash=false) | safe }}"></script>
+<script src="{{ get_url(path="/js/filter.js", trailing_slash=false) | safe }}"></script>
+<script src="{{ get_url(path="/js/email-reveal.js", trailing_slash=false) | safe }}"></script>
+{% endblock content %}
