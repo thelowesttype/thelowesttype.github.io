@@ -13,6 +13,9 @@ $dark-sec   : #FCDEC0;
 $card-grey   : #bbb;
 $card-text   : #1d2d35;   // dark navy — readable on teal, peach, or grey
 
+// Prevent pull-to-refresh on mobile (swiping down at top of page)
+html, body { overscroll-behavior-y: none; }
+
 // Global body text override (homepage only)
 body { color: #d2d2d2; }
 

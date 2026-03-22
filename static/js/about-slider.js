@@ -6,6 +6,7 @@
 
   // Disable pull-to-refresh so swiping down doesn't reload the page
   document.body.style.overscrollBehaviorY = 'none';
+  document.documentElement.style.overscrollBehaviorY = 'none';
 
   var stages    = window.ABOUT_STAGES;
   var textArea  = document.getElementById('aboutTextArea');
