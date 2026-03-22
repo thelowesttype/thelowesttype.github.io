@@ -312,8 +312,8 @@ move  = true
 # fly-LR — rainbow quad flies in triumphantly as the "backup plan" is mentioned.
 # Landscape AR=0.81: width=420 → h=341px. Flying so no corner conflict.
 [[extra.popups]]
-src     = "gifs/rainbow_quad.png"
-show    = 87
+src     = "gifs/rainbow_uni.png"
+show    = 90
 hide    = 97
 bottom  = "60px"
 width   = 390

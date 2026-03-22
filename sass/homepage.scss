@@ -755,6 +755,8 @@ $card-shadow-hov: 14px 14px 0 #000;
   &.visible {
     opacity: 1;
     transform: none;
+    pointer-events: auto;
+    cursor: pointer;
   }
 
   // Exit: quicker scale-down with slight rotation, overrides the spring easing

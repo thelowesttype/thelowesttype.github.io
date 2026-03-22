@@ -13,6 +13,22 @@
 
   var currentIdx    = -1;
   var pendingTimers = [];
+
+  // ── Click-to-dismiss ──────────────────────────────────────────────────────
+  function hidePopup(p) {
+    if (!p.classList.contains('visible') || p.classList.contains('is-hiding')) return;
+    p.classList.add('is-hiding');
+    p.classList.remove('visible');
+    p.dataset.dismissed = '1';
+    p.addEventListener('transitionend', function cleanup() {
+      p.removeEventListener('transitionend', cleanup);
+      p.classList.remove('is-hiding');
+    });
+  }
+
+  popups.forEach(function (p) {
+    p.addEventListener('click', function () { hidePopup(p); });
+  });
   var cvBtn         = document.getElementById('about-cv-btn');
   var CV_SHOW_AT    = 75;   // slider % at which the CV button fades in
 
@@ -207,18 +223,40 @@
 
   // ── Looped attention flicker ──────────────────────────────────────────────
   // Runs continuously while any [data-flicker] popup is visible.
+  // Vibration pattern mirrors the two flash peaks in the CSS animation
+  // (3.8 s cycle; flashes at ~152 ms and ~494 ms into each cycle).
+  var flickerVibInterval = null;
+  var FLICKER_PERIOD     = 3800;
+  // [buzz, gap, buzz] — gap = 494 - 30 = 464 ms between pulse starts
+  var FLICKER_PATTERN    = [30, 434, 30];
+
   function updateFlicker() {
     var anyVisible = false;
     flickerPs.forEach(function (fp) {
       if (fp.classList.contains('visible')) anyVisible = true;
     });
     if (flashEl) flashEl.classList.toggle('about-flickering', anyVisible);
+
+    if (anyVisible && !flickerVibInterval && navigator.vibrate) {
+      navigator.vibrate(FLICKER_PATTERN);   // fire immediately in phase with animation start
+      flickerVibInterval = setInterval(function () {
+        navigator.vibrate(FLICKER_PATTERN);
+      }, FLICKER_PERIOD);
+    } else if (!anyVisible && flickerVibInterval) {
+      clearInterval(flickerVibInterval);
+      flickerVibInterval = null;
+      navigator.vibrate(0);   // cancel any in-progress vibration
+    }
   }
 
   // ── Main update ───────────────────────────────────────────────────────────
   slider.addEventListener('input', function () {
     var val = parseInt(slider.value, 10);
     var idx = stageIdx(val);
+
+    // Haptic tick — scales from ~2 ms at val=10 up to ~20 ms at val=100
+    var vibMs = Math.round(val * 0.2);
+    if (vibMs > 0 && navigator.vibrate) navigator.vibrate(vibMs);
 
     if (idx !== currentIdx) {
       if (idx === currentIdx + 1) applyTransition(currentIdx, idx);
@@ -232,7 +270,12 @@
       var isVisible  = p.classList.contains('visible');
       var isHiding   = p.classList.contains('is-hiding');
 
-      if (shouldShow && !isVisible && !isHiding) {
+      if (!shouldShow) {
+        // Reset dismissed state when slider leaves the popup's range
+        delete p.dataset.dismissed;
+      }
+
+      if (shouldShow && !isVisible && !isHiding && !p.dataset.dismissed) {
         p.classList.add('visible');
       } else if (!shouldShow && isVisible && !isHiding) {
         p.classList.add('is-hiding');
@@ -275,7 +318,7 @@
   }, { passive: false });
 
   // ── Touch double-tap left/right to step the slider ──────────────────────
-  // Double-tap left half → step back 10%.  Right half → step forward 10%.
+  // Double-tap left half → step back 1%.  Right half → step forward 1%.
   // 300 ms window between taps; resets after a successful double-tap so a
   // quick triple-tap doesn't fire twice.
   var lastTapTime = 0;
@@ -283,7 +326,7 @@
     var now = Date.now();
     if (now - lastTapTime < 300) {
       var x    = e.changedTouches[0].clientX;
-      var step = x < window.innerWidth / 2 ? -10 : 10;
+      var step = x < window.innerWidth / 2 ? -1 : 1;
       var val  = Math.max(0, Math.min(100, parseInt(slider.value, 10) + step));
       slider.value = val;
       slider.dispatchEvent(new Event('input'));
