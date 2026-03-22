@@ -4,7 +4,7 @@ title = "The Lowest Type"
 [extra]
 # ── Hero section text ──────────────────────────────────────────────────────────
 # Edit these two fields to update the homepage hero without touching templates.
-hero_tagline = "Putting rocks and sand to work for us humans"
+hero_tagline = "I teach metal and sand how to understand space"
 hero_bio = '''
 I'm <strong>Saksham</strong>. Currently I spend my days at CMU's AIRLab watching highly educated metal boxes have existential breakdowns in the mud.
 When I’m not acting as a couples counselor for sensors and actuators, I am either swimming, cycling, or making some animations!
