@@ -3,6 +3,7 @@
 {% block seo %}
   {% set_global current_section = 'aboutme' %}
   {{ super() }}
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
   <link rel="stylesheet" href="{{ get_url(path='/homepage.css', trailing_slash=false) | safe }}">
 {% endblock seo %}
 
