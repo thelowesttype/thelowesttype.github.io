@@ -63,11 +63,18 @@ window.ABOUT_VIDEO_AT = 101;  {# video disabled — set above slider range #}
   {# ── Attention flicker overlay — CSS animation runs while flicker popups visible #}
   <div id="about-flash"></div>
 
-  {# ── First-visit guide hint ───────────────────────────────────────────────── #}
+  {# ── Guide hint — shown every visit, dismissed on first interaction ─────── #}
   <div id="about-guide">
+    <div class="guide-hints guide-hints-touch">
+      <span>swipe left to reveal more</span>
+      <span>swipe right to go back</span>
+    </div>
+    <div class="guide-hints guide-hints-mouse">
+      <span>scroll down to reveal more</span>
+      <span>scroll up to go back</span>
+    </div>
     <div class="guide-hints">
-      <span>scroll to reveal more</span>
-      <span>click popups to dismiss</span>
+      <span>tap popups to dismiss</span>
     </div>
   </div>
 
@@ -85,11 +92,9 @@ window.ABOUT_VIDEO_AT = 101;  {# video disabled — set above slider range #}
 (function () {
   var guide = document.getElementById('about-guide');
   if (!guide) return;
-  if (localStorage.getItem('about_guide_seen')) { guide.style.display = 'none'; return; }
   function dismiss() {
     guide.classList.add('guide-hidden');
     guide.addEventListener('transitionend', function () { guide.style.display = 'none'; }, { once: true });
-    localStorage.setItem('about_guide_seen', '1');
     window.removeEventListener('wheel', dismiss);
     document.removeEventListener('touchmove', dismiss);
   }

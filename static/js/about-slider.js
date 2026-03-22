@@ -300,60 +300,67 @@
     slider.dispatchEvent(new Event('input'));
   }, { passive: false });
 
-  // ── Touch swipe (vertical) scrolls the slider ────────────────────────────
-  // Swipe up = advance, swipe down = retreat. 1% per 5 px feels responsive.
-  // Only activates when the touch starts outside interactive elements (links,
-  // buttons, nav) so normal tap-navigation still works.
-  var touchLastY        = 0;
-  var swipeActive       = false;
+  // ── Touch handling ───────────────────────────────────────────────────────
+  // Axis-locked pattern: vertical swipe → native page scroll (browser owns),
+  // horizontal swipe → slider control (JS owns). touch-action: pan-y on the
+  // container tells the browser this upfront so scroll response is instant.
+  //
+  // Axis locks after 8px of movement so short taps don't mis-fire.
+  var touchStartX       = 0;
+  var touchStartY       = 0;
+  var swipeAxis         = null;   // 'h' | 'v' | null
   var sliderActive      = false;
   var sliderTouchStartX = 0;
   var sliderTouchStartV = 0;
 
-  // Slider touch: track horizontal drag to move the range value directly.
+  // Slider bar: direct horizontal drag
   slider.addEventListener('touchstart', function (e) {
     sliderActive      = true;
-    swipeActive       = false;
     sliderTouchStartX = e.touches[0].clientX;
     sliderTouchStartV = parseFloat(slider.value);
   }, { passive: true });
 
   slider.addEventListener('touchmove', function (e) {
-    var sliderWidth = slider.getBoundingClientRect().width;
-    var dx    = e.touches[0].clientX - sliderTouchStartX;
-    var delta = (dx / sliderWidth) * 100;
-    var val   = Math.max(0, Math.min(100, sliderTouchStartV + delta));
+    var dx  = e.touches[0].clientX - sliderTouchStartX;
+    var val = Math.max(0, Math.min(100, sliderTouchStartV + (dx / slider.getBoundingClientRect().width) * 100));
     slider.value = val;
     slider.dispatchEvent(new Event('input'));
   }, { passive: true });
 
+  // General touch: lock axis, horizontal controls slider
   document.addEventListener('touchstart', function (e) {
-    // Don't hijack touches on links, buttons, or nav — let them navigate
-    if (e.target.closest('a, button, nav, header, input')) {
-      swipeActive = false;
-      return;
-    }
-    touchLastY  = e.touches[0].clientY;
-    swipeActive = true;
+    if (e.target.closest('a, button, nav, header, input, label')) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    swipeAxis   = null;
   }, { passive: true });
 
   document.addEventListener('touchmove', function (e) {
-    // Slider drag: block vertical scroll, let the input handle horizontal
     if (sliderActive) { e.preventDefault(); return; }
-    if (!swipeActive) return;
-    var y     = e.touches[0].clientY;
-    var delta = touchLastY - y;   // positive = finger moving up = advance
-    touchLastY = y;
-    var sensitivity = delta < 0 ? 3 : 5;   // scroll back is faster to reduce over-swipe
-    var step = delta / sensitivity;
-    var val  = Math.max(0, Math.min(100, parseFloat(slider.value) + step));
-    slider.value = val;
-    slider.dispatchEvent(new Event('input'));
-    e.preventDefault();
+
+    var x  = e.touches[0].clientX;
+    var y  = e.touches[0].clientY;
+    var dx = x - touchStartX;
+    var dy = y - touchStartY;
+
+    // Lock axis after 8px so taps don't accidentally trigger either path
+    if (!swipeAxis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+      swipeAxis = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+    }
+
+    if (swipeAxis === 'h') {
+      e.preventDefault();
+      var step = -dx / 3;   // left = advance, right = retreat
+      var val  = Math.max(0, Math.min(100, parseFloat(slider.value) + step));
+      slider.value = val;
+      slider.dispatchEvent(new Event('input'));
+      touchStartX = x;   // relative delta so velocity maps naturally
+    }
+    // swipeAxis === 'v': fall through — browser handles scroll naturally
   }, { passive: false });
 
   document.addEventListener('touchend', function () {
-    swipeActive  = false;
+    swipeAxis    = null;
     sliderActive = false;
   }, { passive: true });
 }());

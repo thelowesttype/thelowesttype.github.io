@@ -534,7 +534,7 @@ $card-shadow-hov: 14px 14px 0 #000;
   display: flex;
   flex-direction: column;
   padding-bottom: 80px;   // space for fixed slider bar
-  touch-action: none;     // hand all touch events to JS; prevents browser claiming gesture before touchmove
+  touch-action: pan-y;    // browser owns vertical scroll; JS handles horizontal swipe for slider
 }
 
 .about-content {
@@ -545,7 +545,6 @@ $card-shadow-hov: 14px 14px 0 #000;
   padding: 3rem 2rem 2rem;
   display: flex;
   flex-direction: column;
-  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -616,7 +615,6 @@ $card-shadow-hov: 14px 14px 0 #000;
 
 .a-word {
   display: inline;
-  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -931,6 +929,15 @@ $card-shadow-hov: 14px 14px 0 #000;
     color: rgba(255, 255, 255, 0.4);
     text-align: center;
     letter-spacing: 0.05em;
+  }
+
+  // Touch devices: show swipe hints, hide scroll hints
+  @media (pointer: coarse) {
+    .guide-hints-mouse { display: none; }
+  }
+  // Mouse/trackpad devices: show scroll hints, hide swipe hints
+  @media (pointer: fine) {
+    .guide-hints-touch { display: none; }
   }
 }
 
