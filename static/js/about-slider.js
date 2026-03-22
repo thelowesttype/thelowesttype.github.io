@@ -312,6 +312,7 @@
   var sliderActive      = false;
   var sliderTouchStartX = 0;
   var sliderTouchStartV = 0;
+  var swipeAccum        = 0;      // fractional accumulator for swipe steps
 
   // Slider bar: direct horizontal drag
   slider.addEventListener('touchstart', function (e) {
@@ -350,11 +351,15 @@
 
     if (swipeAxis === 'h') {
       e.preventDefault();
-      var step = -dx / 3;   // left = advance, right = retreat
-      var val  = Math.max(0, Math.min(100, parseFloat(slider.value) + step));
-      slider.value = val;
-      slider.dispatchEvent(new Event('input'));
-      touchStartX = x;   // relative delta so velocity maps naturally
+      swipeAccum += -dx * 8 / window.innerWidth;   // ~1/3 screen swipe = 1 stage
+      var whole = Math.trunc(swipeAccum);
+      if (whole !== 0) {
+        swipeAccum -= whole;
+        var val = Math.max(0, Math.min(100, parseInt(slider.value, 10) + whole));
+        slider.value = val;
+        slider.dispatchEvent(new Event('input'));
+      }
+      touchStartX = x;
     }
     // swipeAxis === 'v': fall through — browser handles scroll naturally
   }, { passive: false });
@@ -362,5 +367,6 @@
   document.addEventListener('touchend', function () {
     swipeAxis    = null;
     sliderActive = false;
+    swipeAccum   = 0;
   }, { passive: true });
 }());
