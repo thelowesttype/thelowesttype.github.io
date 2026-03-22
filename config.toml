@@ -136,6 +136,12 @@ url = "https://github.com/codeck313"
 weight = 20
 
 [[extra.menu.social]]
+name = "Google Scholar"
+pre = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838.9C6.033 6.245 8.819 4.2 12 4.2c2.358 0 4.484.95 6.037 2.485l3.477-3.16L12 0zm5.637 9.26a5.597 5.597 0 0 0-1.25-1.772A5.587 5.587 0 0 0 12 5.8a5.587 5.587 0 0 0-5.587 5.587 5.587 5.587 0 0 0 5.587 5.587 5.587 5.587 0 0 0 5.587-5.587c0-.726-.14-1.42-.395-2.057l-5.192 3.842V11.4l5.637-2.14z"/></svg>'
+url = "https://scholar.google.com/citations?user=5nfPzU4AAAAJ"
+weight = 20
+
+[[extra.menu.social]]
 name = "Linkdin"
 pre = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>'
 url = "https://linkedin.com/in/saksham-sharma-98678ab7"

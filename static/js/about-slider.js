@@ -304,15 +304,27 @@
   // Swipe up = advance, swipe down = retreat. 1% per 5 px feels responsive.
   // Only activates when the touch starts outside interactive elements (links,
   // buttons, nav) so normal tap-navigation still works.
-  var touchLastY   = 0;
-  var swipeActive  = false;
-  var sliderActive = false;
+  var touchLastY        = 0;
+  var swipeActive       = false;
+  var sliderActive      = false;
+  var sliderTouchStartX = 0;
+  var sliderTouchStartV = 0;
 
-  // When the touch starts on the slider itself, lock out vertical scroll
-  // without interfering with the range input's own horizontal drag handling.
-  slider.addEventListener('touchstart', function () {
-    sliderActive = true;
-    swipeActive  = false;
+  // Slider touch: track horizontal drag to move the range value directly.
+  slider.addEventListener('touchstart', function (e) {
+    sliderActive      = true;
+    swipeActive       = false;
+    sliderTouchStartX = e.touches[0].clientX;
+    sliderTouchStartV = parseFloat(slider.value);
+  }, { passive: true });
+
+  slider.addEventListener('touchmove', function (e) {
+    var sliderWidth = slider.getBoundingClientRect().width;
+    var dx    = e.touches[0].clientX - sliderTouchStartX;
+    var delta = (dx / sliderWidth) * 100;
+    var val   = Math.max(0, Math.min(100, sliderTouchStartV + delta));
+    slider.value = val;
+    slider.dispatchEvent(new Event('input'));
   }, { passive: true });
 
   document.addEventListener('touchstart', function (e) {
@@ -332,7 +344,8 @@
     var y     = e.touches[0].clientY;
     var delta = touchLastY - y;   // positive = finger moving up = advance
     touchLastY = y;
-    var step = delta / 5;
+    var sensitivity = delta < 0 ? 3 : 5;   // scroll back is faster to reduce over-swipe
+    var step = delta / sensitivity;
     var val  = Math.max(0, Math.min(100, parseFloat(slider.value) + step));
     slider.value = val;
     slider.dispatchEvent(new Event('input'));
