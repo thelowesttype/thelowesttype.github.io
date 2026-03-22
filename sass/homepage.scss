@@ -69,6 +69,14 @@ body { color: #d2d2d2; }
     border: 1px solid rgba(255,255,255,0.15);
     pointer-events: none;
     z-index: 10;
+
+    @media (max-width: 680px) {
+      white-space: normal;
+      text-align: center;
+      max-width: min(260px, 80vw);
+      bottom: auto;
+      top: calc(100% + 8px);
+    }
   }
 }
 
