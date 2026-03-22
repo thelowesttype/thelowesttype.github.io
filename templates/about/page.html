@@ -63,6 +63,14 @@ window.ABOUT_VIDEO_AT = 101;  {# video disabled — set above slider range #}
   {# ── Attention flicker overlay — CSS animation runs while flicker popups visible #}
   <div id="about-flash"></div>
 
+  {# ── First-visit guide hint ───────────────────────────────────────────────── #}
+  <div id="about-guide">
+    <div class="guide-hints">
+      <span>scroll to reveal more</span>
+      <span>click popups to dismiss</span>
+    </div>
+  </div>
+
   {# ── Slider bar ───────────────────────────────────────────────────────────── #}
   <div class="about-slider-bar">
     <span class="slider-label slider-less">Seduction by Logic</span>
@@ -73,6 +81,22 @@ window.ABOUT_VIDEO_AT = 101;  {# video disabled — set above slider range #}
 </div>
 
 <script src="{{ get_url(path='/js/about-slider.js', trailing_slash=false) }}"></script>
+<script>
+(function () {
+  var guide = document.getElementById('about-guide');
+  if (!guide) return;
+  if (localStorage.getItem('about_guide_seen')) { guide.style.display = 'none'; return; }
+  function dismiss() {
+    guide.classList.add('guide-hidden');
+    guide.addEventListener('transitionend', function () { guide.style.display = 'none'; }, { once: true });
+    localStorage.setItem('about_guide_seen', '1');
+    window.removeEventListener('wheel', dismiss);
+    document.removeEventListener('touchmove', dismiss);
+  }
+  window.addEventListener('wheel', dismiss, { once: true });
+  document.addEventListener('touchmove', dismiss, { once: true });
+}());
+</script>
 {% endblock content %}
 
 {% block footer %}{% endblock footer %}
