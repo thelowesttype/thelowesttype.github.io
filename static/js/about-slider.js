@@ -228,7 +228,7 @@
   var flickerVibInterval = null;
   var FLICKER_PERIOD     = 3800;
   // [buzz, gap, buzz] — gap = 494 - 30 = 464 ms between pulse starts
-  var FLICKER_PATTERN    = [30, 434, 30];
+  var FLICKER_PATTERN    = [12, 452, 12];
 
   function updateFlicker() {
     var anyVisible = false;
@@ -255,7 +255,7 @@
     var idx = stageIdx(val);
 
     // Haptic tick — scales from ~2 ms at val=10 up to ~20 ms at val=100
-    var vibMs = Math.round(val * 0.2);
+    var vibMs = Math.round(val * 0.1);
     if (vibMs > 0 && navigator.vibrate) navigator.vibrate(vibMs);
 
     if (idx !== currentIdx) {
