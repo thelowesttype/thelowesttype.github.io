@@ -314,7 +314,6 @@ move  = true
 [[extra.popups]]
 src     = "gifs/rainbow_uni.png"
 show    = 90
-hide    = 97
 bottom  = "60px"
 width   = 390
 animate = "fly-lr"

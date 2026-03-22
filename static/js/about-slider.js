@@ -4,6 +4,9 @@
   var slider    = document.getElementById('aboutSlider');
   if (!slider || !window.ABOUT_STAGES) return;
 
+  // Disable pull-to-refresh so swiping down doesn't reload the page
+  document.body.style.overscrollBehaviorY = 'none';
+
   var stages    = window.ABOUT_STAGES;
   var textArea  = document.getElementById('aboutTextArea');
   var popups    = document.querySelectorAll('.about-popup');
@@ -223,40 +226,18 @@
 
   // ── Looped attention flicker ──────────────────────────────────────────────
   // Runs continuously while any [data-flicker] popup is visible.
-  // Vibration pattern mirrors the two flash peaks in the CSS animation
-  // (3.8 s cycle; flashes at ~152 ms and ~494 ms into each cycle).
-  var flickerVibInterval = null;
-  var FLICKER_PERIOD     = 3800;
-  // [buzz, gap, buzz] — gap = 494 - 30 = 464 ms between pulse starts
-  var FLICKER_PATTERN    = [12, 452, 12];
-
   function updateFlicker() {
     var anyVisible = false;
     flickerPs.forEach(function (fp) {
       if (fp.classList.contains('visible')) anyVisible = true;
     });
     if (flashEl) flashEl.classList.toggle('about-flickering', anyVisible);
-
-    if (anyVisible && !flickerVibInterval && navigator.vibrate) {
-      navigator.vibrate(FLICKER_PATTERN);   // fire immediately in phase with animation start
-      flickerVibInterval = setInterval(function () {
-        navigator.vibrate(FLICKER_PATTERN);
-      }, FLICKER_PERIOD);
-    } else if (!anyVisible && flickerVibInterval) {
-      clearInterval(flickerVibInterval);
-      flickerVibInterval = null;
-      navigator.vibrate(0);   // cancel any in-progress vibration
-    }
   }
 
   // ── Main update ───────────────────────────────────────────────────────────
   slider.addEventListener('input', function () {
     var val = parseInt(slider.value, 10);
     var idx = stageIdx(val);
-
-    // Haptic tick — scales from ~2 ms at val=10 up to ~20 ms at val=100
-    var vibMs = Math.round(val * 0.1);
-    if (vibMs > 0 && navigator.vibrate) navigator.vibrate(vibMs);
 
     if (idx !== currentIdx) {
       if (idx === currentIdx + 1) applyTransition(currentIdx, idx);
@@ -300,8 +281,9 @@
     });
     if (textArea) textArea.classList.toggle('text-dimmed', anyFsVisible);
 
+    var pct = parseFloat(slider.value).toFixed(2);
     slider.style.background =
-      'linear-gradient(to right,#8ed6fb ' + val + '%,rgba(255,255,255,0.18) ' + val + '%)';
+      'linear-gradient(to right,#8ed6fb ' + pct + '%,rgba(255,255,255,0.18) ' + pct + '%)';
   });
 
   renderStage(0);
@@ -317,22 +299,47 @@
     slider.dispatchEvent(new Event('input'));
   }, { passive: false });
 
-  // ── Touch double-tap left/right to step the slider ──────────────────────
-  // Double-tap left half → step back 1%.  Right half → step forward 1%.
-  // 300 ms window between taps; resets after a successful double-tap so a
-  // quick triple-tap doesn't fire twice.
-  var lastTapTime = 0;
-  document.addEventListener('touchend', function (e) {
-    var now = Date.now();
-    if (now - lastTapTime < 300) {
-      var x    = e.changedTouches[0].clientX;
-      var step = x < window.innerWidth / 2 ? -1 : 1;
-      var val  = Math.max(0, Math.min(100, parseInt(slider.value, 10) + step));
-      slider.value = val;
-      slider.dispatchEvent(new Event('input'));
-      lastTapTime = 0;
-    } else {
-      lastTapTime = now;
+  // ── Touch swipe (vertical) scrolls the slider ────────────────────────────
+  // Swipe up = advance, swipe down = retreat. 1% per 5 px feels responsive.
+  // Only activates when the touch starts outside interactive elements (links,
+  // buttons, nav) so normal tap-navigation still works.
+  var touchLastY   = 0;
+  var swipeActive  = false;
+  var sliderActive = false;
+
+  // When the touch starts on the slider itself, lock out vertical scroll
+  // without interfering with the range input's own horizontal drag handling.
+  slider.addEventListener('touchstart', function () {
+    sliderActive = true;
+    swipeActive  = false;
+  }, { passive: true });
+
+  document.addEventListener('touchstart', function (e) {
+    // Don't hijack touches on links, buttons, or nav — let them navigate
+    if (e.target.closest('a, button, nav, header, input')) {
+      swipeActive = false;
+      return;
     }
-  });
+    touchLastY  = e.touches[0].clientY;
+    swipeActive = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function (e) {
+    // Slider drag: block vertical scroll, let the input handle horizontal
+    if (sliderActive) { e.preventDefault(); return; }
+    if (!swipeActive) return;
+    var y     = e.touches[0].clientY;
+    var delta = touchLastY - y;   // positive = finger moving up = advance
+    touchLastY = y;
+    var step = delta / 5;
+    var val  = Math.max(0, Math.min(100, parseFloat(slider.value) + step));
+    slider.value = val;
+    slider.dispatchEvent(new Event('input'));
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', function () {
+    swipeActive  = false;
+    sliderActive = false;
+  }, { passive: true });
 }());
