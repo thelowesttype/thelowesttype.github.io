@@ -1,0 +1,117 @@
+# Sample Dockerfile for A6K ArtPark Server
+# This template creates a user inside the container matching your server user
+
+# Choose appropriate base image for your needs
+# Examples:
+# - nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 (for GPU workloads)
+# - nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04 (newer CUDA)
+# - pytorch/pytorch:2.0.0-cuda11.8-cudnn8-devel (PyTorch pre-installed)
+# - tensorflow/tensorflow:latest-gpu (TensorFlow pre-installed)
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+
+### USER CONFIGURATION - CHANGE THESE ###
+# Set these to match your server username and IDs
+# Find your user ID with: id -u
+# Find your group ID with: id -g
+# Find your username with: whoami
+ENV USER_NAME=<your_username>
+ENV USER_ID=<your_user_id>
+ENV GROUP_ID=<your_group_id>
+ENV USER_PSWD=<container_password>
+### END USER CONFIGURATION ###
+
+WORKDIR /app
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+# Customize this list based on your project needs
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    python3-pip \
+    zsh \
+    curl \
+    wget \
+    vim \
+    tmux \
+    sudo \
+    libgl1-mesa-dev \
+    libglib2.0-0 \
+    # Add any other system packages you need here
+    && rm -rf /var/lib/apt/lists/*
+
+### USER SETUP - DO NOT MODIFY ###
+# Creates a non-root user matching your server user
+# This ensures files created in mounted volumes have correct permissions
+RUN groupadd --gid $GROUP_ID $USER_NAME && \
+    useradd --uid $USER_ID --gid $GROUP_ID -d /home/$USER_NAME -m --shell /bin/zsh $USER_NAME && \
+    echo "${USER_NAME}:${USER_PSWD}" | chpasswd && \
+    usermod -aG sudo ${USER_NAME}
+
+RUN chown -R $USER_NAME:$USER_NAME /app
+USER $USER_NAME
+WORKDIR /home/$USER_NAME
+ENV PATH="/home/${USER_NAME}/.local/bin:${PATH}"
+### END USER SETUP ###
+
+# Optional: Install Oh My Zsh for better terminal experience
+# Remove this section if you prefer bash
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+RUN sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions)/' ~/.zshrc
+
+### PROJECT-SPECIFIC SETUP - CUSTOMIZE THIS SECTION ###
+
+# Copy your project files
+# COPY --chown=$USER_NAME:$USER_NAME <source_directory> /home/$USER_NAME/<destination>
+# Example:
+# COPY --chown=$USER_NAME:$USER_NAME ./my_project /home/$USER_NAME/my_project
+
+# Set working directory to your project
+# WORKDIR /home/$USER_NAME/<your_project_directory>
+
+# Install Python packages
+# Option 1: Using requirements.txt
+# RUN pip install --no-cache-dir -r requirements.txt
+
+# Option 2: Installing specific packages
+# Example PyTorch installation (adjust CUDA version as needed):
+# RUN pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu118
+
+# Example common ML packages:
+# RUN pip install numpy pandas scikit-learn matplotlib seaborn jupyter
+
+# Install any additional Python packages
+# RUN pip install <package1> <package2> <package3>
+
+# Build/compile any native code if needed
+# Example CMake build:
+# RUN cd <directory> && \
+#     mkdir -p build && \
+#     cd build && \
+#     cmake .. && \
+#     make
+
+# Switch to root if you need system-level installation
+# USER root
+# RUN cd <directory>/build && make install
+# USER ${USER_NAME}
+
+# Download any required models, weights, or data
+# RUN bash ./scripts/download_models.sh
+# Or using wget/curl:
+# RUN wget <url> -O <destination>
+
+# Install your project as a package (if applicable)
+# RUN python3 setup.py install --user
+
+### END PROJECT-SPECIFIC SETUP ###
+
+# Set the default command when container starts
+# Options:
+# - Interactive shell: CMD ["/bin/zsh"] or CMD ["/bin/bash"]
+# - Run a script: CMD ["python", "main.py"]
+# - Start a service: CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888"]
+CMD ["/bin/zsh"]
