@@ -6,8 +6,8 @@ draft = false
 [extra]
 featured = true
 authors = "S. Gupta*, S. Sharma*, S. Sundaram"
-venue = "Submitted — RA-L"
-year = "2025"
+venue = "Submitted IROS'26"
+year = "2026"
 tldr = "A distributed online learning scheme that enables a team of robots to converge to a desired displacement-based formation without requiring a centralised coordinator or pre-computed trajectories."
 categories = ["multi-robot"]
 image = "/img/papers/dol.jpg"

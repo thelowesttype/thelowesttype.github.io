@@ -27,11 +27,89 @@
     p.addEventListener('transitionend', function cleanup() {
       p.removeEventListener('transitionend', cleanup);
       p.classList.remove('is-hiding');
+      updateMobilePadding();
     });
   }
 
+  // ── Draggable popups (mobile only) ────────────────────────────────────────
+  // Tap = dismiss (< 8px movement). Drag = reposition freely.
+  // Flying popups (fly-lr / fly-rl) are "catchable" mid-animation.
+  var DRAG_THRESHOLD = 8;
+
   popups.forEach(function (p) {
-    p.addEventListener('click', function () { hidePopup(p); });
+    var ds = { active: false, moved: false, startX: 0, startY: 0, offX: 0, offY: 0, flyClass: null };
+
+    // Desktop: plain click to dismiss
+    p.addEventListener('click', function () {
+      if (ds.moved) { ds.moved = false; return; }  // suppress click after drag
+      hidePopup(p);
+    });
+
+    // Mobile only: touch drag
+    p.addEventListener('touchstart', function (e) {
+      if (window.innerWidth > 680) return;
+      var t = e.touches[0];
+      var rect = p.getBoundingClientRect();
+      ds.startX = t.clientX;
+      ds.startY = t.clientY;
+      ds.offX   = t.clientX - rect.left;
+      ds.offY   = t.clientY - rect.top;
+      ds.active   = false;
+      ds.moved    = false;
+      ds.flyClass = p.classList.contains('popup-fly-lr') ? 'popup-fly-lr' :
+                    p.classList.contains('popup-fly-rl') ? 'popup-fly-rl' : null;
+
+      // Capture current rendered position for flying popups so drag starts from there
+      if (ds.flyClass) {
+        p.style.left = rect.left + 'px';
+        p.style.top  = rect.top  + 'px';
+      }
+    }, { passive: true });
+
+    p.addEventListener('touchmove', function (e) {
+      if (window.innerWidth > 680) return;
+      var t  = e.touches[0];
+      var dx = t.clientX - ds.startX;
+      var dy = t.clientY - ds.startY;
+
+      if (!ds.active && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+        ds.active = true;
+        ds.moved  = true;
+        // Only remove fly animations — they animate `left` directly and conflict
+        // with drag. Jiggle/float use `translate`/`rotate` and compose fine.
+        p.classList.remove('popup-fly-lr');
+        p.classList.remove('popup-fly-rl');
+      }
+
+      if (!ds.active) return;
+      e.preventDefault();
+      e.stopPropagation();  // prevent document swipe handler from firing
+
+      var w       = p.offsetWidth;
+      var h       = p.offsetHeight;
+      var newLeft = Math.max(0, Math.min(window.innerWidth  - w, t.clientX - ds.offX));
+      var newTop  = Math.max(0, Math.min(window.innerHeight - h, t.clientY - ds.offY));
+
+      // Switch from corner-based positioning to explicit top/left
+      p.style.right  = 'auto';
+      p.style.bottom = 'auto';
+      p.style.left   = newLeft + 'px';
+      p.style.top    = newTop  + 'px';
+    }, { passive: false });
+
+    p.addEventListener('touchend', function () {
+      ds.active = false;
+      if (ds.moved) {
+        // Re-add fly animation if this was a flying popup — clears inline left
+        // so the animation controls it again. Vertical position stays where dropped.
+        if (ds.flyClass) {
+          p.style.left = '';
+          p.classList.add(ds.flyClass);
+        }
+        updateMobilePadding();
+      }
+      // ds.moved stays true briefly to suppress the synthetic click event
+    }, { passive: true });
   });
   var cvBtn         = document.getElementById('about-cv-btn');
   var CV_SHOW_AT    = 75;   // slider % at which the CV button fades in
@@ -190,12 +268,13 @@
     diff.forEach(function (tok) {
       var span;
       if (tok.type === 'keep') {
-        span = oldSpans[oldIdx++];
+        span = oldIdx < oldSpans.length ? oldSpans[oldIdx++] : makeSpan(tok.word);
         span.className   = wordClass(tok.word);
         span.textContent = stripMarkers(tok.word);
         frag.appendChild(span);
 
       } else if (tok.type === 'remove') {
+        if (oldIdx >= oldSpans.length) return;
         span = oldSpans[oldIdx++];
         span.className = 'a-word a-word-out';
         frag.appendChild(span);
@@ -224,6 +303,24 @@
   function stageIdx(val) {
     return Math.min(Math.floor((val / 100) * stages.length), stages.length - 1);
   }
+
+  // ── Mobile padding — only when a bottom-positioned popup is visible ─────────
+  // Adds exactly enough padding-bottom to about-content so the user can scroll
+  // the text above the popup zone. Removed when no bottom popup is visible.
+  var aboutContent = document.querySelector('.about-content');
+
+  function updateMobilePadding() {
+    if (!aboutContent || window.innerWidth > 680) return;
+    var maxH = 0;
+    popups.forEach(function (p) {
+      if (p.classList.contains('visible') && p.style.bottom && p.style.bottom !== 'auto') {
+        maxH = Math.max(maxH, p.offsetHeight);
+      }
+    });
+    aboutContent.style.paddingBottom = maxH > 0 ? (maxH + 16) + 'px' : '';
+  }
+
+  window.addEventListener('resize', updateMobilePadding);
 
   // ── Looped attention flicker ──────────────────────────────────────────────
   // Runs continuously while any [data-flicker] popup is visible.
@@ -285,6 +382,8 @@
     var pct = parseFloat(slider.value).toFixed(2);
     slider.style.background =
       'linear-gradient(to right,#8ed6fb ' + pct + '%,rgba(255,255,255,0.18) ' + pct + '%)';
+
+    updateMobilePadding();
   });
 
   renderStage(0);

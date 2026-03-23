@@ -23,13 +23,13 @@ math = true
 
 <br>
 
-So picture this: you recently "borrowed" a shiny new server from another lab — full of optimism, sunshine, and rainbows. You plug it in, power it up… and the happiness evaporates instantly.
+So picture this: you recently "borrowed" a shiny new server from another lab full of optimism, sunshine, and rainbows. You plug it in, power it up… and the happiness evaporates instantly.
 
-There are fifty users, all blessed with root access, and the hard drive is so full that the desktop won't even load. That's when it hits you — the reality of what you've just inherited.
+There are fifty users, all blessed with root access, and the hard drive is so full that the desktop won't even load. That's when it hits you the reality of what you've just inherited.
 
-You're not just getting a server; you're inheriting years of chaos. You'll need new hard drives, a proper user management system, and—let's face it—you'll probably end up writing half the management software yourself. Because who else will?
+You're not just getting a server; you're inheriting years of chaos. You'll need new hard drives, a proper user management system, andlet's face ityou'll probably end up writing half the management software yourself. Because who else will?
 
-After fixing the same problems approximately 472 times, I decided it was time to automate the pain. Hence, this lovingly chaotic survival manual for Server Maintenance — a place where Docker reigns supreme and `/scratch` is your only true home.
+After fixing the same problems approximately 472 times, I decided it was time to automate the pain. Hence, this lovingly chaotic survival manual for Server Maintenance a place where Docker reigns supreme and `/scratch` is your only true home.
 
 > In theory, automation saves time. In practice, it just breaks faster while you're asleep.
 >
@@ -59,7 +59,7 @@ Each user has:
 
 ## The Usage SOP (Standard Operating Procedure)
 
-Every user runs their workloads only through Docker containers. That's non-negotiable — partly for security, partly because that's the only way the server stays sane.
+Every user runs their workloads only through Docker containers. That's non-negotiable partly for security, partly because that's the only way the server stays sane.
 
 The basic workflow is:
 
@@ -95,14 +95,14 @@ docker rm <container-id>
 There's also a shared etiquette:
 
 - `/scratch/common` is not your personal archive. Use it for temporary sharing.
-- GPU usage is monitored — so don't hog them. Ideally would have loved the server to be running SLURM but for a 1 GPU system felt like overkill at that time.
+- GPU usage is monitored so don't hog them. Ideally would have loved the server to be running SLURM but for a 1 GPU system felt like overkill at that time.
 - Old containers and images are purged automatically. Don't panic when they disappear.
 
 In short: use the server like a polite houseguest. Leave it cleaner than you found it (Sadly not everyone will do that. And hence you need enforcers too!)
 
 ## The Initial Setup: From Chaos to Functionality
 
-When I first got the server, the plan was simple — wipe as little as possible and make it functional again. Of course, nothing is ever simple.
+When I first got the server, the plan was simple wipe as little as possible and make it functional again. Of course, nothing is ever simple.
 
 ### Phase 1: Storage Salvation with LVM
 
@@ -144,9 +144,9 @@ The beauty of LVM? When someone inevitably fills the disk again, I just add anot
 
 ### Phase 2: User Management Overhaul
 
-Everyone's root access was revoked. Users were re-created with isolated directories and proper permissions. I wrote two scripts that became my best friends — and eventually, the backbone of the entire user management system.
+Everyone's root access was revoked. Users were re-created with isolated directories and proper permissions. I wrote two scripts that became my best friends and eventually, the backbone of the entire user management system.
 
-The `create_user.sh` script handles everything from account creation to sending welcome emails. The `delete_user.sh` script ensures safe removal with optional workspace backup. These aren't just convenience tools — they enforce consistency and security that manual management could never guarantee.
+The `create_user.sh` script handles everything from account creation to sending welcome emails. The `delete_user.sh` script ensures safe removal with optional workspace backup. These aren't just convenience tools they enforce consistency and security that manual management could never guarantee.
 
 (See [The Maintainer Toolkit](#the-maintainer-toolkit-teaching-the-server-to-look-after-itself) section below for detailed breakdown of how these scripts work.)
 
@@ -199,9 +199,9 @@ docker info | grep "Docker Root Dir"
 
 ## The Maintainer Toolkit: Teaching the Server to Look After Itself
 
-Once the server reached a somewhat stable state, I realized there was no going back — maintenance wasn't a one-time thing. I needed to build tools that could manage users, track usage, and keep resources under control without my constant intervention.
+Once the server reached a somewhat stable state, I realized there was no going back maintenance wasn't a one-time thing. I needed to build tools that could manage users, track usage, and keep resources under control without my constant intervention.
 
-### create_user.sh — The Onboarding Wizard
+### create_user.sh The Onboarding Wizard
 
 This script is my answer to "can you give me access to the server?" Instead of manually creating users, setting up directories, configuring permissions, and sending welcome emails, I now just run one command.
 
@@ -223,7 +223,7 @@ sudo ./create_user.sh john john@example.com /scratch/john_custom
    chage -d 0 username  # Forces password change on first login
    usermod -aG docker username
    ```
-   The temporary password `airl` was chosen because it's memorable but meaningless. Users can't avoid changing it — the system forces them to on first SSH login.
+   The temporary password `airl` was chosen because it's memorable but meaningless. Users can't avoid changing it the system forces them to on first SSH login.
 
 3. **Workspace setup with proper isolation:**
    ```bash
@@ -242,11 +242,11 @@ sudo ./create_user.sh john john@example.com /scratch/john_custom
 
    The email template is built right into the script, so you can customize it for your lab's specific needs. Mine includes a "GPU goes burrr" signature because why not.
 
-**Why this matters:** Before this script, user onboarding took 15-20 minutes of manual work. Now it's a single command and 30 seconds. More importantly, it's consistent — every user gets the same secure setup, no exceptions, no forgotten steps.
+**Why this matters:** Before this script, user onboarding took 15-20 minutes of manual work. Now it's a single command and 30 seconds. More importantly, it's consistent every user gets the same secure setup, no exceptions, no forgotten steps.
 
-### delete_user.sh — The Responsible Bouncer
+### delete_user.sh The Responsible Bouncer
 
-Removing users is trickier than creating them. You can't just run `userdel` and call it a day — what about their data? Their running processes? Their Docker containers?
+Removing users is trickier than creating them. You can't just run `userdel` and call it a day what about their data? Their running processes? Their Docker containers?
 
 **Usage patterns:**
 
@@ -270,7 +270,7 @@ sudo ./delete_user.sh john /scratch/john_custom --save
    pkill -9 -u username
    sleep 2  # Give processes time to actually die
    ```
-   Kills all running processes owned by the user. The sleep is important — some processes are stubborn and need a moment to realize they're dead.
+   Kills all running processes owned by the user. The sleep is important some processes are stubborn and need a moment to realize they're dead.
 
 3. **Docker group cleanup:**
    ```bash
@@ -278,7 +278,7 @@ sudo ./delete_user.sh john /scratch/john_custom --save
    ```
    Removes Docker access before deletion. Otherwise, the user's containers might become orphaned.
 
-4. **Workspace handling — The critical decision:**
+4. **Workspace handling The critical decision:**
 
    **Option A: Save the workspace (default and recommended)**
    ```bash
@@ -302,7 +302,7 @@ sudo ./delete_user.sh john /scratch/john_custom --save
    rm -rf /scratch/username
    ```
 
-   Permanent deletion. The script asks for confirmation twice — once at the start, once before actually nuking the directory. I've seen too many "wait, I needed that" moments to skip the double-check.
+   Permanent deletion. The script asks for confirmation twice once at the start, once before actually nuking the directory. I've seen too many "wait, I needed that" moments to skip the double-check.
 
 5. **User account removal:**
    ```bash
@@ -473,7 +473,7 @@ Here's what a typical day looks like now:
 
 **Night:** Weekly cleanup runs automatically. Docker cache cleared, old containers removed, logs rotated. I wake up to a notification that everything completed successfully.
 
-The server mostly runs itself now. I finally have time to get back to robotics — though part of me secretly enjoys watching the maintenance logs scroll by at 2 AM, knowing it's all working by itself.
+The server mostly runs itself now. I finally have time to get back to robotics though part of me secretly enjoys watching the maintenance logs scroll by at 2 AM, knowing it's all working by itself.
 
 ## Where to Find Everything
 
