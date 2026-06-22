@@ -7,7 +7,7 @@ template = "paper.html"
 [extra]
 # Short fields used by the publications listing template
 featured  = true
-authors   = "S. Gupta*, S. Sharma*, S. Sundaram"
+authors   = "S. Gupta*, S. Sharma*, S. Gunagi, S. Sundaram"
 venue     = "IROS 2026"
 year      = ""
 tldr      = "Instead of giving each robot a smarter local controller, TOLD adapts who each robot listens to — rewiring edge weights online via gradient descent to minimize formation error. No training, no centralized coordinator, stackable on any existing method."
@@ -15,7 +15,7 @@ categories = ["multi-robot"]
 image     = "/img/papers/dol.jpg"
 
 # Full fields used by the standalone paper.html template
-paper_authors = ["Shubhankar Gupta*", "Saksham Sharma*", "Suresh Sundaram"]
+paper_authors = ["Shubhankar Gupta*", "Saksham Sharma*", "Sumant Gunagi", "Suresh Sundaram"]
 institution   = "Indian Institute of Science, Bengaluru"
 paper_url     = "#"
 code_url      = "#"
@@ -136,7 +136,7 @@ Three Crazyflie 2.0 quadrotors on a Qualisys motion-capture testbed. Drone 0 (le
     </video>
     <div class="vid-meta">
       <span class="vid-label">The Stress Test</span>
-      <span class="vid-note">One of us grabbed a drone and sprinted around trying to break the formation. It adapted anyway till it could.</span>
+      <span class="vid-note">One of us grabbed a drone and sprinted around trying to break the formation. It adapted till it could.</span>
     </div>
   </div>
 
@@ -146,7 +146,7 @@ Three Crazyflie 2.0 quadrotors on a Qualisys motion-capture testbed. Drone 0 (le
     </video>
     <div class="vid-meta">
       <span class="vid-label">Indoor / All Runs</span>
-      <span class="vid-note">Grid view of every mocap experiment, crashes included :) Turn on sound for the full propellor experience</span>
+      <span class="vid-note">Grid view of every mocap experiment. Sound On for propeller experience</span>
     </div>
   </div>
 
