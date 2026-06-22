@@ -3,7 +3,7 @@
 
   function scramble(display, target, onDone) {
     var len    = target.length;
-    var frames = len * 5;
+    var frames = len;
     var tick   = 0;
 
     var timer = setInterval(function () {

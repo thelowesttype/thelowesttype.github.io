@@ -7,12 +7,17 @@ render = false
 # Fields: date (string), text (HTML allowed)
 
 [[extra.items]]
+date = "June 2026"
+text = "<em>TOLD</em> paper accepted for <strong>IROS 2026</strong>, see you down the street for conference!"
+
+
+[[extra.items]]
 date = "Jan 2026"
-text = "Joined <strong>MS in Robotics</strong> at CMU, working with Wenshan at AIRLab!"
+text = "Joined <strong>MS in Robotics</strong> at CMU, working at AIRLab!"
 
 [[extra.items]]
 date = "Sep 2025"
-text = "Started as <strong>Robotics Engineer</strong> at Skild.ai"
+text = "Short stint <strong>Robotics Engineer</strong> at Skild.ai"
 
 [[extra.items]]
 date = "Sep 2025"

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title }}</title>
+  <meta name="description" content="{{ page.description | default(value=page.title) }}">
+
+  <!-- Jost -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Site-matched base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: #212529;
+      color: #dee2e6;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    a { color: #8ed6fb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Distinctive site gradient top-bar ─────────────────────────────────── */
+    .paper-topbar {
+      height: 4px;
+      background: linear-gradient(90deg, #fefe54, #8ed6fb 50%, #d32e9d);
+      width: 100%;
+    }
+
+    /* ── Paper page layout ──────────────────────────────────────────────────── */
+    .paper-page {
+      padding-top: 3rem;
+      padding-bottom: 4rem;
+    }
+    .paper-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────────────────────── */
+    .paper-hero {
+      text-align: center;
+      padding: 2.5rem 1.5rem 2rem;
+      border-bottom: 1px solid #1b1f22;
+      margin-bottom: 2.5rem;
+    }
+    .paper-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0 auto 1.25rem;
+      max-width: 720px;
+      color: #fff;
+    }
+    .paper-authors {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      gap: 0.35rem 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+    .paper-author { font-size: 1rem; color: #8ed6fb; }
+    a.paper-author { color: #8ed6fb; }
+    a.paper-author:hover { text-decoration: underline; }
+    .author-sep { color: #495057; }
+    .paper-equal-note {
+      font-size: 0.78rem;
+      color: #6c757d;
+      margin-bottom: 0.55rem;
+      font-family: 'Jost', sans-serif;
+    }
+    .paper-institution {
+      font-size: 0.9rem;
+      color: #adb5bd;
+      margin-bottom: 0.3rem;
+    }
+    .paper-venue {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      padding: 0.15rem 0.7rem;
+      border: 1px solid #495057;
+      border-radius: 2px;
+      font-size: 0.78rem;
+      font-family: 'Jost', sans-serif;
+      color: #adb5bd;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .paper-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+    .paper-btn {
+      display: inline-block;
+      padding: 0.35rem 1.1rem;
+      border: 1px solid #8ed6fb;
+      border-radius: 2px;
+      color: #8ed6fb;
+      font-size: 0.875rem;
+      font-family: 'Jost', sans-serif;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, box-shadow 0.12s;
+    }
+    .paper-btn:hover {
+      background: #8ed6fb;
+      color: #1b1f22;
+      box-shadow: 4px 4px 0 #1b1f22;
+      text-decoration: none;
+    }
+
+    /* ── Content sections ───────────────────────────────────────────────────── */
+    .paper-section { margin-bottom: 3rem; }
+    .paper-section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #dee2e6;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid #8ed6fb;
+      font-family: 'Jost', sans-serif;
+      letter-spacing: 0.04em;
+    }
+    .paper-abstract p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: #adb5bd;
+    }
+    .paper-teaser {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #1b1f22;
+      border: 1px dashed #343a40;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.85rem;
+      color: #495057;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Method cards ───────────────────────────────────────────────────────── */
+    .method-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .method-card {
+      padding: 1rem 1.1rem;
+      background: #1b1f22;
+      border: 1px solid #343a40;
+      border-radius: 2px;
+    }
+    .method-card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #dee2e6;
+      margin-bottom: 0.55rem;
+      font-family: 'Jost', sans-serif;
+    }
+    .method-card p {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #adb5bd;
+      margin: 0;
+    }
+    .method-card code {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.82rem;
+      color: #dee2e6;
+    }
+    .algo-dot {
+      display: inline-block;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    /* ── Parameter sliders ──────────────────────────────────────────────────── */
+    #paramPanel {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+    .param-group {
+      background: #161a1e;
+      border: 1px solid #2c3137;
+      border-radius: 2px;
+      padding: 0.65rem 0.75rem 0.5rem;
+    }
+    .param-group-title {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+      color: #dee2e6;
+      margin-bottom: 0.45rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid #2c3137;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .param-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.28rem;
+    }
+    .param-label {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.7rem;
+      color: #6c757d;
+      min-width: 2rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .param-row input[type=range] {
+      flex: 1;
+      height: 3px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #343a40;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    .param-row input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #8ed6fb;
+      cursor: pointer;
+    }
+    .param-row input[type=range]::-moz-range-thumb {
+      width: 12px; height: 12px;
+      border: none;
+      border-radius: 50%;
+      background: #8ed6fb;
+      cursor: pointer;
+    }
+    .param-val {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.68rem;
+      color: #8ed6fb;
+      min-width: 2.6rem;
+      text-align: left;
+      flex-shrink: 0;
+    }
+    @media (max-width: 540px) { #paramPanel { grid-template-columns: 1fr; } }
+
+    /* ── Demo section ───────────────────────────────────────────────────────── */
+    .demo-wrapper {
+      background: #1b1f22;
+      border: 1px solid #343a40;
+      border-radius: 3px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .demo-canvas-wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    #formationCanvas {
+      display: block;
+      width: 100%;
+      max-width: 700px;
+      height: auto;
+      border-radius: 2px;
+      cursor: grab;
+    }
+    #formationCanvas:active { cursor: grabbing; }
+    .demo-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+    .demo-controls label {
+      font-size: 0.8rem;
+      font-family: 'Jost', sans-serif;
+      color: #6c757d;
+      white-space: nowrap;
+    }
+    .demo-controls select {
+      background: #212529;
+      border: 1px solid #495057;
+      color: #dee2e6;
+      border-radius: 2px;
+      padding: 0.2rem 0.5rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+    }
+    .demo-controls button {
+      padding: 0.25rem 0.8rem;
+      background: none;
+      border: 1px solid #8ed6fb;
+      color: #8ed6fb;
+      border-radius: 2px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .demo-controls button:hover { background: #8ed6fb; color: #1b1f22; }
+    .demo-hint {
+      font-size: 0.75rem;
+      font-family: 'Jost', sans-serif;
+      color: #495057;
+      margin-top: 0.4rem;
+    }
+
+    /* ── BibTeX ─────────────────────────────────────────────────────────────── */
+    .bibtex-block {
+      background: #1b1f22;
+      border: 1px solid #343a40;
+      border-radius: 2px;
+      padding: 1rem 1.25rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: #adb5bd;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .paper-title { font-size: 1.35rem; }
+      .method-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Gradient top-bar matching site header -->
+<div class="paper-topbar"></div>
+
+<div class="paper-page">
+
+  <!-- HERO -->
+  <header class="paper-hero">
+    <div class="paper-container" style="max-width:720px;">
+      <h1 class="paper-title">{{ page.title }}</h1>
+
+      <div class="paper-authors">
+        {% if page.extra.paper_authors %}
+          {% for author in page.extra.paper_authors %}
+            {% set name_clean = author | replace(from="*", to="") %}
+            {% set has_star = "*" in author %}
+            {% if "Saksham" in author %}
+              <a href="/" class="paper-author">{{ name_clean }}{% if has_star %}<sup>*</sup>{% endif %}</a>
+            {% else %}
+              <span class="paper-author">{{ name_clean }}{% if has_star %}<sup>*</sup>{% endif %}</span>
+            {% endif %}
+            {% if not loop.last %}<span class="author-sep">·</span>{% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      {% set authors_joined = page.extra.paper_authors | default(value=[]) | join(sep="") %}
+      {% if "*" in authors_joined %}
+        <p class="paper-equal-note">* Equal contribution</p>
+      {% endif %}
+
+      {% if page.extra.institution %}
+        <div class="paper-institution">{{ page.extra.institution }}</div>
+      {% endif %}
+
+      {% if page.extra.venue %}
+        <div><span class="paper-venue">{{ page.extra.venue }}</span></div>
+      {% endif %}
+
+      <div class="paper-buttons" style="margin-top:1.25rem;">
+        <a href="{{ page.extra.paper_url | default(value='#') | safe }}" class="paper-btn">Paper</a>
+        <a href="{{ page.extra.code_url  | default(value='#') | safe }}" class="paper-btn">Code</a>
+        <a href="{{ page.extra.video_url | default(value='#') | safe }}" class="paper-btn">Video</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="paper-container">
+    {{ page.content | safe }}
+  </div>
+
+</div>
+
+</body>
+</html>

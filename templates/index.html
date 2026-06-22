@@ -117,15 +117,6 @@
     <div class="section-inner">
       <h2 class="section-heading">Publications</h2>
 
-      <div class="filter-group" data-target=".pub-list">
-        <button class="filter-btn active" data-category="all">All</button>
-        {% if pub_section.extra.filter_categories %}
-          {% for cat in pub_section.extra.filter_categories %}
-          <button class="filter-btn" data-category="{{ cat | lower }}">{{ cat }}</button>
-          {% endfor %}
-        {% endif %}
-      </div>
-
       <div class="pub-list">
         {% for page in featured_pubs %}
         <div class="pub-card" data-categories="{{ page.extra.categories | join(sep=',') }}">

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block body %}{% set page_class = "page" %}{% endblock body %}
+
+{% block header %}
+  {{ macros_header::header(current_section="projects") }}
+{% endblock header %}
+
+{% block content %}
+<style>
+  /* ── Paper page layout ───────────────────────────────────────────────────── */
+  .paper-page {
+    padding-top: 80px;  /* navbar clearance */
+    padding-bottom: 4rem;
+    color: #d2d2d2;
+  }
+
+  .paper-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* ── Hero ────────────────────────────────────────────────────────────────── */
+  .paper-hero {
+    text-align: center;
+    padding: 3rem 1.5rem 2.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 2.5rem;
+  }
+
+  .paper-title {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 auto 1.25rem;
+    max-width: 720px;
+    color: #fff;
+  }
+
+  .paper-authors {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 1.1rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .paper-author {
+    font-size: 1rem;
+    color: #8ed6fb;
+  }
+
+  .paper-institution {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 0.3rem;
+  }
+
+  .paper-venue {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    padding: 0.15rem 0.7rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 2px;
+    font-size: 0.78rem;
+    font-family: "DOS", monospace;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .paper-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .paper-btn {
+    display: inline-block;
+    padding: 0.35rem 1.1rem;
+    border: 1px solid #8ed6fb;
+    border-radius: 2px;
+    color: #8ed6fb;
+    font-size: 0.875rem;
+    font-family: "DOS", monospace;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, box-shadow 0.12s;
+    box-shadow: none;
+  }
+  .paper-btn:hover {
+    background: #8ed6fb;
+    color: #071018;
+    box-shadow: 4px 4px 0 #000;
+    text-decoration: none;
+  }
+
+  /* ── Content sections ────────────────────────────────────────────────────── */
+  .paper-section {
+    margin-bottom: 3rem;
+  }
+
+  .paper-section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #8ed6fb;
+  }
+
+  /* Abstract */
+  .paper-abstract p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #c8c8c8;
+    margin: 0;
+  }
+
+  /* Teaser */
+  .paper-teaser {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 2.5rem;
+  }
+
+  /* Method cards */
+  .method-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .method-card {
+    padding: 1rem 1.1rem;
+    background: rgba(142,214,251,0.06);
+    border: 2px solid #3a8ec8;
+    border-radius: 2px;
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .method-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #8ed6fb;
+    margin-bottom: 0.5rem;
+    font-family: "DOS", monospace;
+  }
+
+  .method-card p {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: #bbb;
+    margin: 0;
+  }
+
+  .method-card .algo-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* Demo section */
+  .demo-wrapper {
+    background: #111;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .demo-canvas-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  #formationCanvas {
+    display: block;
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    border-radius: 3px;
+    cursor: grab;
+  }
+  #formationCanvas:active { cursor: grabbing; }
+
+  .demo-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+
+  .demo-controls label {
+    font-size: 0.82rem;
+    font-family: "DOS", monospace;
+    color: #aaa;
+    white-space: nowrap;
+  }
+
+  .demo-controls select,
+  .demo-controls input[type=range] {
+    background: #1a1a2e;
+    border: 1px solid #444;
+    color: #ddd;
+    border-radius: 2px;
+    padding: 0.2rem 0.5rem;
+    font-family: "DOS", monospace;
+    font-size: 0.8rem;
+  }
+
+  .demo-controls button {
+    padding: 0.25rem 0.8rem;
+    background: none;
+    border: 1px solid #8ed6fb;
+    color: #8ed6fb;
+    border-radius: 2px;
+    font-family: "DOS", monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .demo-controls button:hover {
+    background: #8ed6fb;
+    color: #071018;
+  }
+
+  .demo-hint {
+    font-size: 0.78rem;
+    font-family: monospace;
+    color: #555;
+    margin-top: 0.4rem;
+  }
+
+  /* BibTeX */
+  .bibtex-block {
+    background: #0d0d1a;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 3px;
+    padding: 1rem 1.25rem;
+    font-family: "Courier New", monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #aaa;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .paper-title { font-size: 1.4rem; }
+    .method-cards { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="paper-page">
+
+  <!-- HERO -->
+  <header class="paper-hero">
+    <div class="paper-container" style="max-width:720px;">
+      <h1 class="paper-title">{{ section.title }}</h1>
+
+      <div class="paper-authors">
+        {% if section.extra.authors %}
+          {% for author in section.extra.authors %}
+            <span class="paper-author">{{ author }}</span>{% if not loop.last %}<span style="color:#555;">·</span>{% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      {% if section.extra.institution %}
+        <div class="paper-institution">{{ section.extra.institution }}</div>
+      {% endif %}
+
+      {% if section.extra.venue %}
+        <div><span class="paper-venue">{{ section.extra.venue }}</span></div>
+      {% endif %}
+
+      <div class="paper-buttons" style="margin-top:1.25rem;">
+        <a href="{{ section.extra.paper_url | default(value='#') | safe }}" class="paper-btn">[Paper]</a>
+        <a href="{{ section.extra.code_url  | default(value='#') | safe }}" class="paper-btn">[Code]</a>
+        <a href="{{ section.extra.video_url | default(value='#') | safe }}" class="paper-btn">[Video]</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- BODY (abstract, method, demo, bibtex — all in markdown body) -->
+  <div class="paper-container">
+    {{ section.content | safe }}
+  </div>
+
+</div>
+{% endblock content %}
