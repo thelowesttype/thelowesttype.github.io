@@ -31,17 +31,17 @@ const MAX_VEL = 6.0;      // velocity clamp
    ═══════════════════════════════════════════════════════════════════════════ */
 const ALGO_PARAMS = {
   fixed: {
-    kp:  1.8,   // proportional gain — larger = faster convergence (try 0.5–3.0)
+    kp:  1.3,   // proportional gain — larger = faster convergence (try 0.5–3.0)
     wij: 0.5,   // fixed edge weight for every connected pair (try 0.1–1.0)
   },
   adaptive: {               // OExpGF — exponential Lyapunov adaptive weights
-    kp:      1.8,           // proportional gain
+    kp:      1.3,           // proportional gain
     rho:     0.9,           // decay rate ∈ (0,1) — smaller = tighter exponential decay (try 0.1–0.95)
     eta:     2.0,           // weight learning rate — safe up to ~5 with the non-neg clamp (try 0.5–5.0)
     epsilon: 0.02,          // projection mix with prior — minimum weight floor (try 0.01–0.1)
   },
   gradient: {               // OGF — online gradient flow (unconstrained weights)
-    kp:      1.8,           // proportional gain
+    kp:      1.3,           // proportional gain
     eta:     2.0,           // weight learning rate (try 0.01–5.0; large values = faster but noisier)
     epsilon: 0.02,          // mixing with adjComm prior — prevents weight collapse (try 0.01–0.1)
   },
@@ -494,12 +494,12 @@ function draw() {
   /* Desired formation ghost (dim dotted circles at correct relative positions) */
   ctx.save();
   ctx.setLineDash([3, 5]);
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.5;
   for (let i = 1; i < SIM_N; i++) {
     const tx = leader.wx + INIT_COORDS[i][0] - INIT_COORDS[0][0];
     const ty = leader.wy + INIT_COORDS[i][1] - INIT_COORDS[0][1];
     const [cx, cy] = w2c(tx, ty);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
     ctx.beginPath(); ctx.arc(cx, cy, radZ(INIT_COORDS[i][2]), 0, 2 * Math.PI); ctx.stroke();
   }
   ctx.restore();
@@ -510,9 +510,9 @@ function draw() {
     const [r, g, b] = ALGO_COLORS[a];
     const st = algos[a].state;
     ctx.save();
-    ctx.globalAlpha = GHOST_A * 0.4;
+    ctx.globalAlpha = GHOST_A * 0.85;
     ctx.strokeStyle = `rgb(${r},${g},${b})`;
-    ctx.lineWidth   = 1.5;
+    ctx.lineWidth   = 2;
     ctx.setLineDash([3, 4]);
     for (let i = 1; i < SIM_N; i++)
       for (let j = i + 1; j < SIM_N; j++) {
@@ -524,7 +524,7 @@ function draw() {
     /* leader → neighbours */
     const [lx, ly] = w2c(leader.wx, leader.wy);
     ctx.setLineDash([2, 6]);
-    ctx.globalAlpha = GHOST_A * 0.25;
+    ctx.globalAlpha = GHOST_A * 0.65;
     for (let j = 0; j < SIM_N; j++) {
       if (!adj[0][j]) continue;
       const [fx, fy] = w2c(st[j][0], st[j][1]);
