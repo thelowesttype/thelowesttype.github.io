@@ -42,41 +42,52 @@ Drone swarms and multi-robot teams need to hold a precise geometric shape even w
 </p>
 </div>
 
-<div class="paper-section">
 <h2 class="paper-section-title">Method</h2>
-<br>
+
 <div class="paper-section">
 <img src="/img/papers/told/framework.png"
-     alt="TOLD framework overview: formation sensing, OGF/OExpGF weight updates, formation control fusion, and Crazyflie execution"
-     style="width:100%;border-radius:4px;">
+     alt="TOLD framework overview"
+     style="width:100%;border-radius:4px;margin-top:1.25rem;">
 </div>
 
-<p style="font-size:0.95rem;line-height:1.75;color:#bbb;margin-bottom:1.25rem;">
-All controllers share the same directed ring-topology interaction graph. They differ only in how the edge weights
-<strong style="color:#ddd;">w<sub>ij</sub></strong> — which encode how much robot <em>i</em> weighs its neighbor <em>j</em>'s position — are computed at each timestep.
+<p style="font-size:0.9rem;color:#777;margin:0 0 1.5rem;line-height:1.6;">
+Each robot runs the same consensus law. The only difference between algorithms is how the edge weights <strong style="color:#bbb;">w<sub>ij</sub></strong> are updated.
 </p>
-<div class="method-cards">
-<div class="method-card">
-<div class="method-card-title">
-<span class="algo-dot" style="background:#6495ED;"></span>Fixed Weights (baseline)
+
+<div class="method-rows">
+
+<div class="method-row">
+<div class="method-row-label" style="color:#6495ED;">
+  <span class="algo-dot" style="background:#6495ED;"></span>Fixed Weights
 </div>
-<p>Weights are initialized from the graph adjacency matrix and never updated. Simple and guaranteed stable; convergence speed is set entirely by the proportional gain <em>k<sub>p</sub></em>. Cannot compensate for spatially uneven disturbances.</p>
-</div>
-<div class="method-card">
-<div class="method-card-title">
-<span class="algo-dot" style="background:#50C878;"></span>OExpGF — Exponential Gradient
-</div>
-<p>Weights are updated via exponentiated gradient descent on the local formation distortion error. A discount factor &gamma; down-weights stale gradients over time. The softmax-style normalization keeps all weights non-negative and row-stochastic at every step. <strong>Provably achieves asymptotic consensus.</strong></p>
-</div>
-<div class="method-card">
-<div class="method-card-title">
-<span class="algo-dot" style="background:#FFA500;"></span>OGF — Online Gradient Flow
-</div>
-<p>Weights follow unconstrained online gradient descent on the local distortion error — no positivity or normalization constraints. Delivers the best formation accuracy; weights can grow large under persistent disturbances, which is the practical trade-off vs. OExpGF. <strong>Guarantees non-increasing formation distortion error.</strong></p>
-</div>
+<div class="method-row-body">
+  <strong>Baseline -</strong>
+  Static weights, set once from the graph. Stable by design but blind to disturbances.
 </div>
 </div>
 
+<div class="method-row">
+<div class="method-row-label" style="color:#FFA500;">
+  <span class="algo-dot" style="background:#FFA500;"></span>OGF
+</div>
+<div class="method-row-body">
+  <strong>Unconstrained -</strong>
+  Gradient descent on live formation error. Highest accuracy. Weights are unbounded, a practical concern for long missions.
+</div>
+</div>
+
+<div class="method-row">
+<div class="method-row-label" style="color:#50C878;">
+  <span class="algo-dot" style="background:#50C878;"></span>OExpGF
+</div>
+<div class="method-row-body">
+  <strong>Bounded -</strong>
+  Exponentiated gradient with softmax normalization, weights stay positive and row-stochastic. Provably achieves asymptotic consensus.
+</div>
+</div>
+
+</div>
+<br><br>
 <div class="paper-section">
 <h2 class="paper-section-title">Results</h2>
 <p style="font-size:0.9rem;line-height:1.65;color:#aaa;margin-bottom:1.25rem;">
@@ -278,6 +289,47 @@ Three Crazyflie 2.0 quadrotors on a Qualisys motion-capture testbed. Drone 0 (le
 .algo-tab.active { border-color: var(--tcol); color: #ddd; }
 .algo-tab.active .algo-tab-dot { opacity: 1; }
 .algo-tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: #999; }
+.method-rows { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+.method-row {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 1rem;
+}
+.method-row:last-child { border-bottom: none; }
+.method-row-label {
+  font-size: 0.8rem;
+  font-family: 'DOS', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-top: 0.1rem;
+}
+.method-row-body { font-size: 0.88rem; line-height: 1.65; color: #999; }
+.method-row-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-family: 'DOS', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #555;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2px;
+  padding: 0.05rem 0.4rem;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+details summary::-webkit-details-marker { display: none; }
+@media (max-width: 520px) {
+  .method-row { grid-template-columns: 1fr; gap: 0.3rem; }
+}
 </style>
 
 <div class="paper-section">
