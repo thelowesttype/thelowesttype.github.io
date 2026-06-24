@@ -386,9 +386,9 @@
       {% endif %}
 
       <div class="paper-buttons" style="margin-top:1.25rem;">
-        <a href="{{ page.extra.paper_url | default(value='#') | safe }}" class="paper-btn">Paper</a>
-        <a href="{{ page.extra.code_url  | default(value='#') | safe }}" class="paper-btn">Code</a>
-        <a href="{{ page.extra.video_url | default(value='#') | safe }}" class="paper-btn">Video</a>
+        {% if page.extra.paper_url and page.extra.paper_url != "#" %}<a href="{{ page.extra.paper_url | safe }}" class="paper-btn" target="_blank" rel="noopener noreferrer">Paper</a>{% endif %}
+        {% if page.extra.code_url and page.extra.code_url != "#" %}<a href="{{ page.extra.code_url | safe }}" class="paper-btn" target="_blank" rel="noopener noreferrer">Code</a>{% endif %}
+        {% if page.extra.video_url and page.extra.video_url != "#" %}<a href="{{ page.extra.video_url | safe }}" class="paper-btn" target="_blank" rel="noopener noreferrer">Video</a>{% endif %}
       </div>
     </div>
   </header>

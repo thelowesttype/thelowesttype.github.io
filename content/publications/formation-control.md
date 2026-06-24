@@ -17,9 +17,9 @@ image     = "/img/papers/dol.jpg"
 # Full fields used by the standalone paper.html template
 paper_authors = ["Shubhankar Gupta*", "Saksham Sharma*", "Sumant Gunagi", "Suresh Sundaram"]
 institution   = "Indian Institute of Science, Bengaluru"
-paper_url     = "#"
+paper_url     = "https://arxiv.org/abs/2606.23901"
 code_url      = "#"
-video_url     = "#"
+video_url     = "https://youtu.be/C_7OH9E63co?si=FSjykAVAECyg3KVt"
 +++
 
 <div class="paper-teaser">
