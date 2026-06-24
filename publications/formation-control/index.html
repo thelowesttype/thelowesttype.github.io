@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topological Online Learning for Displacement (TOLD) based Formation Control</title>
+  <meta name="description" content="Topological Online Learning for Displacement (TOLD) based Formation Control">
+
+  <!-- Jost -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Site-matched base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: #212529;
+      color: #dee2e6;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    a { color: #8ed6fb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Distinctive site gradient top-bar ─────────────────────────────────── */
+    .paper-topbar {
+      height: 4px;
+      background: linear-gradient(90deg, #fefe54, #8ed6fb 50%, #d32e9d);
+      width: 100%;
+    }
+
+    /* ── Paper page layout ──────────────────────────────────────────────────── */
+    .paper-page {
+      padding-top: 3rem;
+      padding-bottom: 4rem;
+    }
+    .paper-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────────────────────── */
+    .paper-hero {
+      text-align: center;
+      padding: 2.5rem 1.5rem 2rem;
+      border-bottom: 1px solid #1b1f22;
+      margin-bottom: 2.5rem;
+    }
+    .paper-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0 auto 1.25rem;
+      max-width: 720px;
+      color: #fff;
+    }
+    .paper-authors {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      gap: 0.35rem 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+    .paper-author { font-size: 1rem; color: #8ed6fb; }
+    a.paper-author { color: #8ed6fb; }
+    a.paper-author:hover { text-decoration: underline; }
+    .author-sep { color: #495057; }
+    .paper-equal-note {
+      font-size: 0.78rem;
+      color: #6c757d;
+      margin-bottom: 0.55rem;
+      font-family: 'Jost', sans-serif;
+    }
+    .paper-institution {
+      font-size: 0.9rem;
+      color: #adb5bd;
+      margin-bottom: 0.3rem;
+    }
+    .paper-venue {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      padding: 0.15rem 0.7rem;
+      border: 1px solid #495057;
+      border-radius: 2px;
+      font-size: 0.78rem;
+      font-family: 'Jost', sans-serif;
+      color: #adb5bd;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .paper-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+    .paper-btn {
+      display: inline-block;
+      padding: 0.35rem 1.1rem;
+      border: 1px solid #8ed6fb;
+      border-radius: 2px;
+      color: #8ed6fb;
+      font-size: 0.875rem;
+      font-family: 'Jost', sans-serif;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, box-shadow 0.12s;
+    }
+    .paper-btn:hover {
+      background: #8ed6fb;
+      color: #1b1f22;
+      box-shadow: 4px 4px 0 #1b1f22;
+      text-decoration: none;
+    }
+
+    /* ── Content sections ───────────────────────────────────────────────────── */
+    .paper-section { margin-bottom: 3rem; }
+    .paper-section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #dee2e6;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid #8ed6fb;
+      font-family: 'Jost', sans-serif;
+      letter-spacing: 0.04em;
+    }
+    .paper-abstract p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: #adb5bd;
+    }
+    .paper-teaser {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #1b1f22;
+      border: 1px dashed #343a40;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.85rem;
+      color: #495057;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Method cards ───────────────────────────────────────────────────────── */
+    .method-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .method-card {
+      padding: 1rem 1.1rem;
+      background: #1b1f22;
+      border: 1px solid #343a40;
+      border-radius: 2px;
+    }
+    .method-card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #dee2e6;
+      margin-bottom: 0.55rem;
+      font-family: 'Jost', sans-serif;
+    }
+    .method-card p {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #adb5bd;
+      margin: 0;
+    }
+    .method-card code {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.82rem;
+      color: #dee2e6;
+    }
+    .algo-dot {
+      display: inline-block;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    /* ── Parameter sliders ──────────────────────────────────────────────────── */
+    #paramPanel {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+    .param-group {
+      background: #161a1e;
+      border: 1px solid #2c3137;
+      border-radius: 2px;
+      padding: 0.65rem 0.75rem 0.5rem;
+    }
+    .param-group-title {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+      color: #dee2e6;
+      margin-bottom: 0.45rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid #2c3137;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .param-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.28rem;
+    }
+    .param-label {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.7rem;
+      color: #6c757d;
+      min-width: 2rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .param-row input[type=range] {
+      flex: 1;
+      height: 3px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #343a40;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    .param-row input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #8ed6fb;
+      cursor: pointer;
+    }
+    .param-row input[type=range]::-moz-range-thumb {
+      width: 12px; height: 12px;
+      border: none;
+      border-radius: 50%;
+      background: #8ed6fb;
+      cursor: pointer;
+    }
+    .param-val {
+      font-family: 'Jost', sans-serif;
+      font-size: 0.68rem;
+      color: #8ed6fb;
+      min-width: 2.6rem;
+      text-align: left;
+      flex-shrink: 0;
+    }
+    @media (max-width: 540px) { #paramPanel { grid-template-columns: 1fr; } }
+
+    /* ── Demo section ───────────────────────────────────────────────────────── */
+    .demo-wrapper {
+      background: #1b1f22;
+      border: 1px solid #343a40;
+      border-radius: 3px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .demo-canvas-wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    #formationCanvas {
+      display: block;
+      width: 100%;
+      max-width: 700px;
+      height: auto;
+      border-radius: 2px;
+      cursor: grab;
+    }
+    #formationCanvas:active { cursor: grabbing; }
+    .demo-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+    .demo-controls label {
+      font-size: 0.8rem;
+      font-family: 'Jost', sans-serif;
+      color: #6c757d;
+      white-space: nowrap;
+    }
+    .demo-controls select {
+      background: #212529;
+      border: 1px solid #495057;
+      color: #dee2e6;
+      border-radius: 2px;
+      padding: 0.2rem 0.5rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+    }
+    .demo-controls button {
+      padding: 0.25rem 0.8rem;
+      background: none;
+      border: 1px solid #8ed6fb;
+      color: #8ed6fb;
+      border-radius: 2px;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .demo-controls button:hover { background: #8ed6fb; color: #1b1f22; }
+    .demo-hint {
+      font-size: 0.75rem;
+      font-family: 'Jost', sans-serif;
+      color: #495057;
+      margin-top: 0.4rem;
+    }
+
+    /* ── BibTeX ─────────────────────────────────────────────────────────────── */
+    .bibtex-block {
+      background: #1b1f22;
+      border: 1px solid #343a40;
+      border-radius: 2px;
+      padding: 1rem 1.25rem;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: #adb5bd;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .paper-title { font-size: 1.35rem; }
+      .method-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Gradient top-bar matching site header -->
+<div class="paper-topbar"></div>
+
+<div class="paper-page">
+
+  <!-- HERO -->
+  <header class="paper-hero">
+    <div class="paper-container" style="max-width:720px;">
+      <h1 class="paper-title">Topological Online Learning for Displacement (TOLD) based Formation Control</h1>
+
+      <div class="paper-authors">
+        
+          
+            
+            
+            
+              <span class="paper-author">Shubhankar Gupta<sup>*</sup></span>
+            
+            <span class="author-sep">·</span>
+          
+            
+            
+            
+              <a href="/" class="paper-author">Saksham Sharma<sup>*</sup></a>
+            
+            <span class="author-sep">·</span>
+          
+            
+            
+            
+              <span class="paper-author">Sumant Gunagi</span>
+            
+            <span class="author-sep">·</span>
+          
+            
+            
+            
+              <span class="paper-author">Suresh Sundaram</span>
+            
+            
+          
+        
+      </div>
+
+      
+      
+        <p class="paper-equal-note">* Equal contribution</p>
+      
+
+      
+        <div class="paper-institution">Indian Institute of Science, Bengaluru</div>
+      
+
+      
+        <div><span class="paper-venue">IROS 2026</span></div>
+      
+
+      <div class="paper-buttons" style="margin-top:1.25rem;">
+        <a href="https://arxiv.org/abs/2606.23901" class="paper-btn" target="_blank" rel="noopener noreferrer">Paper</a>
+        
+        <a href="https://youtu.be/C_7OH9E63co?si=FSjykAVAECyg3KVt" class="paper-btn" target="_blank" rel="noopener noreferrer">Video</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="paper-container">
+    <div class="paper-teaser">
+<video width="100%" height="100%" controls muted style="border-radius:4px;">
+  <source src="/vids/TOLD/formationVideo_IROS_nomusic.mp4" type="video/mp4">
+</video>
+</div>
+<div class="paper-section paper-abstract">
+<h2 class="paper-section-title">Summary</h2>
+<p>
+Drone swarms and multi-robot teams need to hold a precise geometric shape even when individual robots are hit by wind gusts, sensor noise, or sudden disturbances. The conventional approach gives each robot a smarter local controller — but those controllers act in isolation and never change <em>how much each robot trusts its neighbors</em>.
+</p>
+<p>
+<strong>TOLD takes a different angle.</strong> Instead of fighting disturbances at each node, we adapt the <em>communication weights</em> between robots online — using gradient descent on the live formation error. Think of it as the formation's attention redistributing itself in real time: if a robot drifts, its neighbors automatically increase how strongly they pull it back.
+</p>
+<br>
+<p>
+<strong>No pre-training</strong>. <strong>No centralized coordinator</strong>.
+</p>
+</div>
+<h2 class="paper-section-title">Method</h2>
+<div class="paper-section">
+<img src="/img/papers/told/framework.png"
+     alt="TOLD framework overview"
+     style="width:100%;border-radius:4px;margin-top:1.25rem;">
+</div>
+<p style="font-size:0.9rem;color:#777;margin:0 0 1.5rem;line-height:1.6;">
+Each robot runs the same consensus law. The only difference between algorithms is how the edge weights <strong style="color:#bbb;">w<sub>ij</sub></strong> are updated.
+</p>
+<div class="method-rows">
+<div class="method-row">
+<div class="method-row-label" style="color:#6495ED;">
+  <span class="algo-dot" style="background:#6495ED;"></span>Fixed Weights
+</div>
+<div class="method-row-body">
+  <strong>Baseline -</strong>
+  Static weights, set once from the graph. Stable by design but blind to disturbances.
+</div>
+</div>
+<div class="method-row">
+<div class="method-row-label" style="color:#FFA500;">
+  <span class="algo-dot" style="background:#FFA500;"></span>OGF
+</div>
+<div class="method-row-body">
+  <strong>Unconstrained -</strong>
+  Gradient descent on live formation error. Highest accuracy. Weights are unbounded, a practical concern for long missions.
+</div>
+</div>
+<div class="method-row">
+<div class="method-row-label" style="color:#50C878;">
+  <span class="algo-dot" style="background:#50C878;"></span>OExpGF
+</div>
+<div class="method-row-body">
+  <strong>Bounded -</strong>
+  Exponentiated gradient with softmax normalization, weights stay positive and row-stochastic. Provably achieves asymptotic consensus.
+</div>
+</div>
+</div>
+<br><br>
+<div class="paper-section">
+<h2 class="paper-section-title">Results</h2>
+<p style="font-size:0.9rem;line-height:1.65;color:#aaa;margin-bottom:1.25rem;">
+Three Crazyflie 2.0 quadrotors on a Qualisys motion-capture testbed. Drone 0 (leader) is auto piloted along a challenging 3D upward spiral; followers execute the formation algorithm using only relative position measurements from their two spatial neighbors.
+</p>
+<div class="algo-tabs">
+  <button class="algo-tab active" data-vid="vid-fixed" style="--tcol:#6495ED;">
+    <span class="algo-tab-dot" style="background:#6495ED;"></span>Fixed Weights
+  </button>
+  <button class="algo-tab" data-vid="vid-grad" style="--tcol:#FFA500;">
+    <span class="algo-tab-dot" style="background:#FFA500;"></span>OGF
+  </button>
+  <button class="algo-tab" data-vid="vid-expo" style="--tcol:#50C878;">
+    <span class="algo-tab-dot" style="background:#50C878;"></span>OExpGF
+  </button>
+</div>
+<video id="vid-fixed" class="algo-video active" controls muted style="border-radius:4px;width:100%;display:block;">
+  <source src="/vids/TOLD/fixed_traj.mp4" type="video/mp4">
+</video>
+<video id="vid-grad" class="algo-video" controls muted style="border-radius:4px;width:100%;display:none;">
+  <source src="/vids/TOLD/grad_traj.mp4" type="video/mp4">
+</video>
+<video id="vid-expo" class="algo-video" controls muted style="border-radius:4px;width:100%;display:none;">
+  <source src="/vids/TOLD/expo_traj.mp4" type="video/mp4">
+</video>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.5rem;text-align:center;">
+<div style="padding:1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:3px;">
+<div style="font-size:0.68rem;font-family:'DOS',monospace;color:#555;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">No Adaptation</div>
+<div style="font-size:1.9rem;font-weight:700;color:#6495ED;">0.25 m</div>
+<div style="font-size:0.75rem;color:#666;margin-top:0.3rem;">Fixed weights median error. Followers drift under disturbances.</div>
+</div>
+<div style="padding:1rem;background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.3);border-radius:3px;">
+<div style="font-size:0.68rem;font-family:'DOS',monospace;color:#a06800;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">OGF / Best Accuracy</div>
+<div style="font-size:1.9rem;font-weight:700;color:#FFA500;">62%</div>
+<div style="font-size:0.75rem;color:#666;margin-top:0.3rem;">Reduction in median distortion. Unconstrained weights, highest accuracy.</div>
+</div>
+<div style="padding:1rem;background:rgba(80,200,120,0.06);border:1px solid rgba(80,200,120,0.3);border-radius:3px;">
+<div style="font-size:0.68rem;font-family:'DOS',monospace;color:#2a7040;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">OExpGF / Safe &amp; Bounded</div>
+<div style="font-size:1.9rem;font-weight:700;color:#50C878;">31%</div>
+<div style="font-size:0.75rem;color:#666;margin-top:0.3rem;">Reduction in median distortion. Weights stay bounded, provably stable.</div>
+</div>
+</div>
+</div>
+<div class="paper-section">
+<p style="font-size:1.05rem;font-weight:600;color:#ddd;margin:0 0 0.2rem;">[ Field Notes ]</p>
+<p style="font-size:0.85rem;color:#666;margin:0 0 1.1rem;line-height:1.6;">Hardware experiments: occasionally graceful, always educational. Crashes inclusive to share the pain.</p>
+<div class="vid-carousel" id="vidCarousel">
+<div class="vid-track" id="vidTrack">
+  <div class="vid-slide">
+    <video width="100%" controls style="border-radius:4px;display:block;">
+      <source src="/vids/TOLD/hand_exp.mp4" type="video/mp4">
+    </video>
+    <div class="vid-meta">
+      <span class="vid-label">The Stress Test</span>
+      <span class="vid-note">One of us grabbed a drone and sprinted around trying to break the formation. It adapted till it could.</span>
+    </div>
+  </div>
+  <div class="vid-slide">
+    <video width="100%" controls muted style="border-radius:4px;display:block;">
+      <source src="/vids/TOLD/final_grid_video_website.mp4" type="video/mp4">
+    </video>
+    <div class="vid-meta">
+      <span class="vid-label">Indoor / All Runs</span>
+      <span class="vid-note">Grid view of every mocap experiment. Sound On for propeller experience</span>
+    </div>
+  </div>
+  <div class="vid-slide">
+    <video width="100%" controls style="border-radius:4px;display:block;">
+      <source src="/vids/TOLD/fixed_gps1.mp4" type="video/mp4">
+    </video>
+    <div class="vid-meta">
+      <span class="vid-label">Outdoor / Trial 1</span>
+      <span class="vid-note">Same algorithm. No motion capture. Actual wind. The formation is L shaped with leader drone between the other two drones in terms of height seperation. </span>
+    </div>
+  </div>
+  <div class="vid-slide">
+    <video width="100%" controls style="border-radius:4px;display:block;">
+      <source src="/vids/TOLD/fixed_gps2.mp4" type="video/mp4">
+    </video>
+    <div class="vid-meta">
+      <span class="vid-label">Outdoor / Trial 2</span>
+      <span class="vid-note">This time the leader gets moved around manually first, then lands. The followers kept up the whole time. Good followers!</span>
+    </div>
+  </div>
+</div>
+<div class="vid-controls">
+  <button class="vid-btn" id="vidPrev">&#8592;</button>
+  <div class="vid-dots" id="vidDots"></div>
+  <button class="vid-btn" id="vidNext">&#8594;</button>
+</div>
+</div>
+</div>
+<style>
+.paper-figure {
+  background: #f8f8f8;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+.paper-figure-caption {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #555;
+  margin: 0.4rem 0 0;
+  font-style: italic;
+}
+.paper-video-embed {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.25);
+  overflow: hidden;
+}
+.vid-carousel { position: relative; overflow: hidden; }
+.vid-track { display: flex; transition: transform 0.35s cubic-bezier(.4,0,.2,1); }
+.vid-slide { min-width: 100%; }
+.vid-meta { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.vid-label {
+  font-size: 0.72rem;
+  font-family: 'DOS', monospace;
+  color: #8ed6fb;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.vid-note { font-size: 0.82rem; color: #666; font-style: italic; }
+.vid-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+.vid-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #666;
+  padding: 0.2rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'DOS', monospace;
+  font-size: 1rem;
+  transition: border-color 0.12s, color 0.12s;
+}
+.vid-btn:hover { border-color: #8ed6fb; color: #8ed6fb; }
+.vid-dots { display: flex; gap: 0.45rem; align-items: center; }
+.vid-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.vid-dot.active { background: #8ed6fb; }
+.algo-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.algo-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.9rem;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2px;
+  color: #555;
+  font-family: 'DOS', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.algo-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0.4;
+  transition: opacity 0.12s;
+  flex-shrink: 0;
+}
+.algo-tab.active { border-color: var(--tcol); color: #ddd; }
+.algo-tab.active .algo-tab-dot { opacity: 1; }
+.algo-tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: #999; }
+.method-rows { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+.method-row {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 1rem;
+}
+.method-row:last-child { border-bottom: none; }
+.method-row-label {
+  font-size: 0.8rem;
+  font-family: 'DOS', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-top: 0.1rem;
+}
+.method-row-body { font-size: 0.88rem; line-height: 1.65; color: #999; }
+.method-row-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-family: 'DOS', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #555;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2px;
+  padding: 0.05rem 0.4rem;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+details summary::-webkit-details-marker { display: none; }
+@media (max-width: 520px) {
+  .method-row { grid-template-columns: 1fr; gap: 0.3rem; }
+}
+</style>
+<div class="paper-section">
+<h2 class="paper-section-title">Interactive Demo</h2>
+<p style="font-size:0.9rem;line-height:1.6;color:#aaa;margin-bottom:0.85rem;">
+The solid white circle is the <strong style="color:#ddd;">leader (agent 0)</strong>.
+Drag it or use arrow keys to move it. Ghost clusters show where each algorithm
+positions the follower agents. Differences are most visible after the algorithms
+have been running for a few seconds on the Figure-8 path &mdash; watch the error
+values in the legend diverge as OGF adapts its edge weights.
+</p>
+<div id="paramPanel"></div>
+<div class="demo-wrapper">
+<div class="demo-canvas-wrap">
+<canvas id="formationCanvas" width="700" height="525"></canvas>
+</div>
+<div class="demo-controls">
+<label for="pathSelect">Path:</label>
+<select id="pathSelect">
+<option value="none">Manual (arrow keys / drag)</option>
+<option value="figure8">Figure-8</option>
+<option value="spiral">Spiral</option>
+<option value="octagon">Octagon</option>
+</select>
+<button id="pauseBtn">Pause / Resume</button>
+<button id="resetBtn">Reset</button>
+</div>
+<p class="demo-hint">Arrow keys: move leader &nbsp;|&nbsp; Q / W: height up / down &nbsp;|&nbsp; Space: pause &nbsp;|&nbsp; R: reset</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;font-size:0.82rem;font-family:monospace;color:#666;margin-top:0.5rem;">
+<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6495ED;margin-right:4px;"></span>Fixed Weights</span>
+<span style="margin:0 0.5rem;">·</span>
+<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#50C878;margin-right:4px;"></span>OExpGF</span>
+<span style="margin:0 0.5rem;">·</span>
+<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FFA500;margin-right:4px;"></span>OGF</span>
+</div>
+</div>
+<div class="paper-section">
+<h2 class="paper-section-title">Acknowledgements</h2>
+<p style="font-size:0.95rem;line-height:1.8;color:#bbb;">
+We thank <strong style="color:#ddd;">Varad Vaidya</strong>, <strong style="color:#ddd;">Samahith S A</strong>, and <strong style="color:#ddd;">Naveed Shaikh</strong> for their help conducting the hardware experiments and for many valuable discussions.
+</p>
+</div>
+<div class="paper-section">
+<h2 class="paper-section-title">BibTeX</h2>
+<pre class="bibtex-block">@inproceedings{gupta2026told,
+  title     = {Topological Online Learning for Displacement-based Formation Control},
+  author    = {Gupta, Shubhankar and Sharma, Saksham and Sundaram, Suresh},
+  booktitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  year      = {2026},
+}</pre>
+</div>
+<script src="/js/formation_sim.js"></script>
+<script>
+(function() {
+  var track = document.getElementById('vidTrack');
+  var dotsWrap = document.getElementById('vidDots');
+  if (!track || !dotsWrap) return;
+  var slides = track.children;
+  var n = slides.length;
+  var cur = 0;
+  for (var i = 0; i < n; i++) {
+    var d = document.createElement('div');
+    d.className = 'vid-dot' + (i === 0 ? ' active' : '');
+    (function(idx) { d.onclick = function() { go(idx); }; })(i);
+    dotsWrap.appendChild(d);
+  }
+  function go(idx) {
+    cur = (idx + n) % n;
+    track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+    Array.from(dotsWrap.children).forEach(function(d, i) {
+      d.classList.toggle('active', i === cur);
+    });
+  }
+  document.getElementById('vidPrev').onclick = function() { go(cur - 1); };
+  document.getElementById('vidNext').onclick = function() { go(cur + 1); };
+})();
+
+document.querySelectorAll('.algo-tab').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.algo-tab').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.algo-video').forEach(function(v) { v.style.display = 'none'; v.pause(); });
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.vid).style.display = 'block';
+  });
+});
+</script>
+
+  </div>
+
+</div>
+
+</body>
+</html>
